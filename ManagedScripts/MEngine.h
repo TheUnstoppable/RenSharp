@@ -36,6 +36,7 @@ limitations under the License.
 #include <engine_common.h>
 #include <engine_obj.h>
 #include <engine_weap.h>
+#include <engine_script.h>
 #include <engine_tt.h>
 #include <engine_da.h>
 #include <Defines.h>
@@ -678,7 +679,9 @@ namespace RenSharp
 			static void RepairAllBuildingsByTeam(int team, int constructionYardID, float health);
 			static void RepairAllStaticVehiclesByTeam(int team, int type);
 			static void SetMaxHealth(IScriptableGameObj ^obj, float health);
+			static void SetMaxHealthWithoutHealing(IScriptableGameObj^ obj, float health);
 			static void SetMaxShieldStrength(IScriptableGameObj ^obj, float shieldStrength);
+			static void SetMaxShieldStrengthWithoutHealing(IScriptableGameObj^ obj, float shieldStrength);
 			static String ^GetShieldType(IScriptableGameObj ^obj);
 			static String ^GetSkin(IScriptableGameObj ^obj);
 			static void SetSkin(IScriptableGameObj ^obj, String ^skinType);
@@ -929,6 +932,7 @@ namespace RenSharp
 			static IScriptableGameObj^ FindClosestObjectWithScript(String^ script, Vector3 pos); 
 			static Generic::ICollection<IScriptableGameObj ^>^ FindAllObjectsWithScript(String^ script);
 			static Generic::ICollection<IScriptableGameObj^>^ FindAllObjectsWithScriptByDistance(String^ script, Vector3 position);
+			static Generic::ICollection<IScriptableGameObj^>^ FindAllVehiclesByDistance(Vector3 position);
 			static void SendCustomEventToObjectsWithScript(IScriptableGameObj^ sender, String^ script, int message, int param, float delay); 
 			static void SendCustomEventToObjectsWithScriptRanged(IScriptableGameObj^ sender, String^ script, int message, int param, float delay, float range);
 			static IScriptImpClass^ FindScriptOnObject(IScriptableGameObj^ obj, String^ script);

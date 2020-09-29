@@ -7879,6 +7879,18 @@ static ::cPlayer* NickSavePlayer = nullptr;
 			health);
 	}
 
+	void Engine::SetMaxHealthWithoutHealing(IScriptableGameObj^ obj, float health)
+	{
+		if (obj == nullptr || obj->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("obj");
+		}
+
+		::Set_Max_Health_Without_Healing(
+			reinterpret_cast<::ScriptableGameObj*>(obj->ScriptableGameObjPointer.ToPointer()),
+			health);
+	}
+
 	void Engine::SetMaxShieldStrength(IScriptableGameObj ^obj, float shieldStrength)
 	{
 		if (obj == nullptr || obj->ScriptableGameObjPointer.ToPointer() == nullptr)
@@ -7888,6 +7900,18 @@ static ::cPlayer* NickSavePlayer = nullptr;
 
 		::Set_Max_Shield_Strength(
 			reinterpret_cast<::ScriptableGameObj *>(obj->ScriptableGameObjPointer.ToPointer()),
+			shieldStrength);
+	}
+
+	void Engine::SetMaxShieldStrengthWithoutHealing(IScriptableGameObj^ obj, float shieldStrength)
+	{
+		if (obj == nullptr || obj->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("obj");
+		}
+
+		::Set_Max_Shield_Strength_Without_Healing(
+			reinterpret_cast<::ScriptableGameObj*>(obj->ScriptableGameObjPointer.ToPointer()),
 			shieldStrength);
 	}
 
@@ -11875,6 +11899,36 @@ static ::cPlayer* NickSavePlayer = nullptr;
 		{
 			Marshal::FreeHGlobal(scriptHandle);
 		}
+	}
+
+	Generic::ICollection<IScriptableGameObj^>^ Engine::FindAllVehiclesByDistance(Vector3 position)
+	{
+		::Vector3 positionVec;
+
+		Vector3::ManagedToUnmanagedVector3(position, positionVec);
+
+		::SList<::ScriptableGameObj> tmp;
+
+		::Find_All_Vehicles_By_Distance(
+			tmp,
+			positionVec);
+
+		Generic::ICollection<IScriptableGameObj^>^ result = gcnew Generic::List<IScriptableGameObj^>();
+
+		for (auto currentNode = tmp.Head(); currentNode != nullptr; currentNode = currentNode->Next())
+		{
+			auto currentObj = currentNode->Data();
+			if (currentObj == nullptr)
+			{
+				result->Add(nullptr);
+			}
+			else
+			{
+				result->Add(safe_cast<IScriptableGameObj^>(BaseGameObj::CreateBaseGameObjWrapper(currentObj)));
+			}
+		}
+
+		return result;
 	}
 
 	void Engine::SendCustomEventToObjectsWithScript(IScriptableGameObj^ sender, String^ script, int message, int param, float delay)
