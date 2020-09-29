@@ -144,7 +144,7 @@ namespace RenSharp
         bool EventClassVehicleFlipEvent(IntPtr eventClass, IntPtr vehicle);
 
         [return: MarshalAs(UnmanagedType.Bool)]
-        bool EventClassRequestVehicleEvent(IntPtr eventClass, IntPtr factory, IntPtr vehicle, IntPtr player, float delay);
+        bool EventClassRequestVehicleEvent(IntPtr eventClass, IntPtr factory, IntPtr vehicle, IntPtr player, float delay, IntPtr owner);
 
         void EventClassThink(IntPtr eventClass);
 

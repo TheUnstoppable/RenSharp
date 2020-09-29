@@ -1295,7 +1295,7 @@ namespace RenSharp
             }
         }
 
-        public bool EventClassRequestVehicleEvent(IntPtr eventClass, IntPtr factory, IntPtr vehicle, IntPtr player, float delay)
+        public bool EventClassRequestVehicleEvent(IntPtr eventClass, IntPtr factory, IntPtr vehicle, IntPtr player, float delay, IntPtr owner)
         {
             try
             {
@@ -1307,6 +1307,8 @@ namespace RenSharp
 
                 IVehicleFactoryGameObj vehicleFactory = (factory == IntPtr.Zero ? null : (IVehicleFactoryGameObj)BaseGameObj.CreateBaseGameObjWrapper(factory));
                 IVehicleGameObjDef vehicleObjDef = (vehicle == IntPtr.Zero ? null : (IVehicleGameObjDef)DefinitionClass.CreateDefinitionClassWrapper(vehicle));
+                ISoldierGameObj soldierObj = (owner == IntPtr.Zero ? null : (ISoldierGameObj)BaseGameObj.CreateBaseGameObjWrapper(owner));
+
 
                 IcPlayer cPlayer;
                 if (player == IntPtr.Zero)
@@ -1318,7 +1320,7 @@ namespace RenSharp
                     cPlayer = new cPlayer(player);
                 }
 
-                return mEventClass.RequestVehicleEvent(vehicleFactory, vehicleObjDef, cPlayer, delay);
+                return mEventClass.RequestVehicleEvent(vehicleFactory, vehicleObjDef, cPlayer, delay, soldierObj);
             }
             catch (Exception ex)
             {

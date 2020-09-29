@@ -501,7 +501,7 @@ namespace RenSharp
 				return true;
 			}
 
-			virtual bool RequestVehicleEvent(IVehicleFactoryGameObj^ factory, IVehicleGameObjDef^ vehicle, IcPlayer^ player, float delay)
+			virtual bool RequestVehicleEvent(IVehicleFactoryGameObj^ factory, IVehicleGameObjDef^ vehicle, IcPlayer^ player, float delay, ISoldierGameObj ^owner)
 			{
 				return true;
 			}

@@ -475,7 +475,7 @@ namespace RenSharp
 		return true;
 	}
 
-	bool RenSharpGameFeatureEventClass::RequestVehicleEvent(IVehicleFactoryGameObj^ factory, IVehicleGameObjDef^ vehicle, IcPlayer^ player, float delay)
+	bool RenSharpGameFeatureEventClass::RequestVehicleEvent(IVehicleFactoryGameObj^ factory, IVehicleGameObjDef^ vehicle, IcPlayer^ player, float delay, ISoldierGameObj^ owner)
 	{
 		return true;
 	}

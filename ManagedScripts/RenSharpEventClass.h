@@ -152,7 +152,7 @@ namespace RenSharp
 
 		bool VehicleFlipEvent(IVehicleGameObj^ vehicle);
 
-		bool RequestVehicleEvent(IVehicleFactoryGameObj^ factory, IVehicleGameObjDef^ vehicle, IcPlayer^ player, float delay);
+		bool RequestVehicleEvent(IVehicleFactoryGameObj^ factory, IVehicleGameObjDef^ vehicle, IcPlayer^ player, float delay, ISoldierGameObj ^owner);
 
 		void Think();
 
@@ -270,7 +270,7 @@ namespace RenSharp
 			virtual void C4DetonateEvent(IC4GameObj ^c4);
 			virtual void ChangeCharacterEvent(IcPlayer ^player, ISoldierGameObjDef ^soldier);
 			virtual bool VehicleFlipEvent(IVehicleGameObj ^vehicle);
-			virtual bool RequestVehicleEvent(IVehicleFactoryGameObj ^factory, IVehicleGameObjDef ^vehicle, IcPlayer ^player, float delay);
+			virtual bool RequestVehicleEvent(IVehicleFactoryGameObj ^factory, IVehicleGameObjDef ^vehicle, IcPlayer ^player, float delay, ISoldierGameObj ^owner);
 			virtual void Think();
 			virtual void ObjectCreatedEvent(IScriptableGameObj ^obj);
 			virtual bool StockClientDamageRequestEvent(IDamageableGameObj ^victim, IArmedGameObj ^damager, float damage, uint warhead);
