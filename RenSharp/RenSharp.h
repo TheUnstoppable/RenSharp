@@ -116,7 +116,7 @@ class RenSharpRootEventClass : public DAEventClass
 		void EventClass_C4_Detonate_Event(RenSharpEventClass* eventClass, C4GameObj *C4);
 		void EventClass_Change_Character_Event(RenSharpEventClass* eventClass, cPlayer *Player, const SoldierGameObjDef *Soldier);
 		bool EventClass_Vehicle_Flip_Event(RenSharpEventClass* eventClass, VehicleGameObj *Vehicle);
-		bool EventClass_Request_Vehicle_Event(RenSharpEventClass* eventClass, VehicleFactoryGameObj *Factory, const VehicleGameObjDef *Vehicle, cPlayer *Player, float Delay);
+		bool EventClass_Request_Vehicle_Event(RenSharpEventClass* eventClass, VehicleFactoryGameObj *Factory, const VehicleGameObjDef *Vehicle, cPlayer *Player, float Delay, SoldierGameObj *Owner);
 		void EventClass_Think(RenSharpEventClass* eventClass);
 		void EventClass_Object_Created_Event(RenSharpEventClass* eventClass, GameObject *obj);
 		bool EventClass_Stock_Client_Damage_Request_Event(RenSharpEventClass* eventClass, DamageableGameObj *Victim, ArmedGameObj *Damager, float Damage, uint Warhead);

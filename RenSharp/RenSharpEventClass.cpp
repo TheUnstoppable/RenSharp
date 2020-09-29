@@ -266,9 +266,9 @@ bool RenSharpEventClass::Vehicle_Flip_Event(VehicleGameObj * Vehicle)
 	return RenSharpRootEventClass::Get_Instance().EventClass_Vehicle_Flip_Event(this, Vehicle);
 }
 
-bool RenSharpEventClass::Request_Vehicle_Event(VehicleFactoryGameObj * Factory, const VehicleGameObjDef * Vehicle, cPlayer * Player, float Delay)
+bool RenSharpEventClass::Request_Vehicle_Event(VehicleFactoryGameObj * Factory, const VehicleGameObjDef * Vehicle, cPlayer * Player, float Delay, SoldierGameObj *Owner)
 {
-	return RenSharpRootEventClass::Get_Instance().EventClass_Request_Vehicle_Event(this, Factory, Vehicle, Player, Delay);
+	return RenSharpRootEventClass::Get_Instance().EventClass_Request_Vehicle_Event(this, Factory, Vehicle, Player, Delay, Owner);
 }
 
 void RenSharpEventClass::Think()

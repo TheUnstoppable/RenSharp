@@ -71,7 +71,7 @@ class RenSharpEventClass : public DAEventClass
 		virtual void C4_Detonate_Event(C4GameObj* C4);
 		virtual void Change_Character_Event(cPlayer* Player, const SoldierGameObjDef* Soldier);
 		virtual bool Vehicle_Flip_Event(VehicleGameObj* Vehicle);
-		virtual bool Request_Vehicle_Event(VehicleFactoryGameObj* Factory, const VehicleGameObjDef* Vehicle, cPlayer* Player, float Delay);
+		virtual bool Request_Vehicle_Event(VehicleFactoryGameObj* Factory, const VehicleGameObjDef* Vehicle, cPlayer* Player, float Delay, SoldierGameObj *Owner);
 		virtual void Think();
 		virtual void Object_Created_Event(GameObject* obj);
 		virtual bool Stock_Client_Damage_Request_Event(DamageableGameObj* Victim, ArmedGameObj* Damager, float Damage, uint Warhead);

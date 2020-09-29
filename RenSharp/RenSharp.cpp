@@ -1717,7 +1717,7 @@ bool RenSharpRootEventClass::EventClass_Vehicle_Flip_Event(RenSharpEventClass* e
 	return (result == TRUE);
 }
 
-bool RenSharpRootEventClass::EventClass_Request_Vehicle_Event(RenSharpEventClass* eventClass, VehicleFactoryGameObj *Factory, const VehicleGameObjDef *Vehicle, cPlayer *Player, float Delay)
+bool RenSharpRootEventClass::EventClass_Request_Vehicle_Event(RenSharpEventClass* eventClass, VehicleFactoryGameObj *Factory, const VehicleGameObjDef *Vehicle, cPlayer *Player, float Delay, SoldierGameObj *Owner)
 {
 	if (shutdown || hostControl == nullptr)
 	{
@@ -1730,7 +1730,7 @@ bool RenSharpRootEventClass::EventClass_Request_Vehicle_Event(RenSharpEventClass
 	if (rsInterface != nullptr)
 	{
 		HRESULT hr;
-		if (FAILED(hr = rsInterface->EventClassRequestVehicleEvent(eventClass, Factory, Vehicle, Player, Delay, &result)))
+		if (FAILED(hr = rsInterface->EventClassRequestVehicleEvent(eventClass, Factory, Vehicle, Player, Delay, Owner, &result)))
 		{
 			_com_error error(hr);
 			Console_Output("ERROR: Failed to call EventClassRequestVehicleEvent: %s\n", error.ErrorMessage());

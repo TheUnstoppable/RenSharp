@@ -125,7 +125,7 @@ struct RenSharpInterface : IUnknown
 	virtual HRESULT __stdcall EventClassC4DetonateEvent(RenSharpEventClass* eventClass, BaseGameObj *c4) = 0;
 	virtual HRESULT __stdcall EventClassChangeCharacterEvent(RenSharpEventClass* eventClass, cPlayer *player, const DefinitionClass *soldier) = 0;
 	virtual HRESULT __stdcall EventClassVehicleFlipEvent(RenSharpEventClass* eventClass, BaseGameObj *vehicle, BOOL *result) = 0;
-	virtual HRESULT __stdcall EventClassRequestVehicleEvent(RenSharpEventClass* eventClass, BaseGameObj *factory, const DefinitionClass *vehicle, cPlayer *player, float delay, BOOL *result) = 0;
+	virtual HRESULT __stdcall EventClassRequestVehicleEvent(RenSharpEventClass* eventClass, BaseGameObj *factory, const DefinitionClass *vehicle, cPlayer *player, float delay, BaseGameObj *Owner, BOOL *result) = 0;
 	virtual HRESULT __stdcall EventClassThink(RenSharpEventClass* eventClass) = 0;
 	virtual HRESULT __stdcall EventClassObjectCreatedEvent(RenSharpEventClass* eventClass, BaseGameObj *obj) = 0;
 	virtual HRESULT __stdcall EventClassStockClientDamageRequestEvent(RenSharpEventClass* eventClass, BaseGameObj *victim, BaseGameObj *damager, float damage, uint warhead, BOOL *result) = 0;

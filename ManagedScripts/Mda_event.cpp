@@ -3271,7 +3271,7 @@ namespace RenSharp
 		return InternalDAEventClassPointer->Vehicle_Flip_Event(vehiclePtr);
 	}
 
-	bool DAEventClass::RequestVehicleEvent(IVehicleFactoryGameObj^ factory, IVehicleGameObjDef^ vehicle, IcPlayer^ player, float delay)
+	bool DAEventClass::RequestVehicleEvent(IVehicleFactoryGameObj^ factory, IVehicleGameObjDef^ vehicle, IcPlayer^ player, float delay, ISoldierGameObj^ owner)
 	{
 		::VehicleFactoryGameObj* factoryPtr;
 		if (factory == nullptr || factory->VehicleFactoryGameObjPointer.ToPointer() == nullptr)
@@ -3303,7 +3303,17 @@ namespace RenSharp
 			playerPtr = reinterpret_cast<::cPlayer*>(player->cPlayerPointer.ToPointer());
 		}
 
-		return InternalDAEventClassPointer->Request_Vehicle_Event(factoryPtr, vehiclePtr, playerPtr, delay);
+		::SoldierGameObj* ownerPtr;
+		if (owner == nullptr || owner->SoldierGameObjPointer.ToPointer() == nullptr)
+		{
+			ownerPtr = nullptr;
+		}
+		else
+		{
+			ownerPtr = reinterpret_cast<::SoldierGameObj*>(owner->SoldierGameObjPointer.ToPointer());
+		}
+
+		return InternalDAEventClassPointer->Request_Vehicle_Event(factoryPtr, vehiclePtr, playerPtr, delay, ownerPtr);
 	}
 
 	void DAEventClass::Think()
