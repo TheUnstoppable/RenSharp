@@ -28,7 +28,7 @@
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -163,6 +163,7 @@ copy "$(TargetPath)" "%RenServerPath%\$(TargetFileName)"
       <BaseAddress>0x11000000</BaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>..\bin\release</AdditionalLibraryDirectories>
+      <MinimumRequiredVersion>6.01</MinimumRequiredVersion>
     </Link>
     <PostBuildEvent>
       <Command>if defined RenPath (
