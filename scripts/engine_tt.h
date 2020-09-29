@@ -19,6 +19,7 @@
 #include "HashTemplateClass.h"
 #include "SList.h"
 #include "cPlayer.h"
+#include "PurchaseSettingsDefClass.h"
 class ConnectionAcceptanceFilter;
 class WideStringClass;
 class cScTextObj;
@@ -556,6 +557,7 @@ SCRIPTS_API DynamicVectorClass<int> Get_Enlisted_Purchase_Items(int team);//Get 
 SCRIPTS_API DynamicVectorClass<int> Get_Purchase_Items(int team, int defType);//Get all defined IDs in the given purchase list
 SCRIPTS_API bool Is_Infantry_Purchaseable(const char *preset,int team); //is this infantry preset purchaseable? (i.e. it would appear on the sidebar and not be hidden or greyed out. Does not do the cost check but does check unit limits)
 SCRIPTS_API bool Is_Vehicle_Purchaseable(const char *preset,int team); //is this vehicle preset purchaseable? (i.e. it would appear on the sidebar and not be hidden or greyed out. Does not do the cost check but does check unit limits)
+SCRIPTS_API bool Is_Preset_Purchasable_In_List(int id, int team, PurchaseSettingsDefClass::TYPE def); //DA
 
 SCRIPTS_API void SendShaderParam(const char* parameter, const char* value);
 SCRIPTS_API void SendShaderParam(const char* parameter, int value);
