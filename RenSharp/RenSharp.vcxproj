@@ -267,9 +267,6 @@ copy "$(TargetPath)" "%RenServerPath%\$(TargetFileName)"
     <ClInclude Include="RenSharpRayCollisionTestClass.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\scripts\plugin.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ManagedRenSharp\ManagedRenSharp.csproj">
       <Project>{a4bedefe-d081-4846-8041-994ee4884725}</Project>
     </ProjectReference>
