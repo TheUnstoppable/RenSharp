@@ -605,30 +605,6 @@ namespace RenSharp
 	{
 		ActionParamsStruct ^ToActionParamsStruct();
 
-		void SetBasicOld(IScriptClass^ script, unsigned long priority, unsigned long id, SoldierAIState state);
-
-		void SetAttackHold(IScriptableGameObj^ target, float range, float deviation, bool primary, bool hold);
-
-		void SetAttackPosition(Vector3 position, float range, float deviation, bool primary);
-
-		void SetGotoLocation(Vector3 position, float speed, float arriveDistance, bool crouch);
-
-		void SetGotoFollowing(IScriptableGameObj^ target, float speed, float arriveDistance, bool following);
-
-		void SetGotoCrouch(IScriptableGameObj^ target, float speed, float arriveDistance, bool crouch);
-
-		void SetGotoCrouchFollowing(IScriptableGameObj^ target, float speed, float arriveDistance, bool crouch, bool following);
-
-		void SetGoto(IScriptableGameObj^ target, float speed, float arriveDistance);
-
-		void SetGotoWaypathStart(unsigned long waypathId, unsigned long waypathStartId, unsigned long waypathEndId, bool splined);
-
-		void SetGotoWaypath(unsigned long waypathId, bool splined, bool attackActive, bool hold);
-
-		void SetGotoWaypathId(unsigned long waypathId);
-
-		void SetMoveArriveDistance(float distance);
-
 		void SetBasic(IGameObjObserverClass ^script, float priority, int actionId, SoldierAIState aiState);
 
 		void SetBasic(IGameObjObserverClass ^script, float priority, int actionId);
