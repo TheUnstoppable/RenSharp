@@ -26,6 +26,8 @@ limitations under the License.
 #include "MPhysDefClass.h"
 #include "MBuildingGameObjDef.h"
 #include "MNetworkObjectClass.h"
+#include "MPurchaseSettingsDefClass.h"
+#include "MAABoxClass.h"
 
 #pragma managed(push, off)
 #pragma warning(push)
@@ -34,6 +36,7 @@ limitations under the License.
 #include <engine_common.h>
 #include <engine_obj.h>
 #include <engine_weap.h>
+#include <engine_tt.h>
 #include <engine_da.h>
 #include <Defines.h>
 #pragma warning(pop) 
@@ -419,6 +422,9 @@ namespace RenSharp
 			static IUnmanagedContainer<IDynamicVectorClass<int> ^> ^RetrieveWaypaths();
 			static IUnmanagedContainer<IDynamicVectorClass<int> ^> ^RetrieveWaypoints(int waypathId);
 			static Vector3 GetWaypointPosition(int waypathId, int waypointId);
+			static Vector3 Test_Raycast_Collision(Vector3 pos1, Vector3 pos2, bool checkDynamicObjects, IScriptableGameObj^ compareObj);
+			static bool IsInsideAABox(AABoxClass box, Vector3 pos);
+			static bool CanGenericSoldierTeleport(Vector3 position);
 			static void CreateLightning(IAmmoDefinitionClass ^ammoDef, Vector3 start, Vector3 end);
 			static void GetClouds([Out] float %cloudCover, [Out] float %gloominess);
 			static void GetLightning([Out] float %intensity, [Out] float %startDistance, [Out] float %endDistance, [Out] float %heading, [Out] float %distribution);
@@ -468,16 +474,47 @@ namespace RenSharp
 			static uint32 GetPathfindDistanceAsync(ISmartGameObj^ pathObj, Vector3 dest, PathfindDistanceDelegate^ callback);
 			static bool GetPathfindDistanceBlocking(ISmartGameObj^ pathObj, Vector3 dest, [Out] float% distanceResult, [Out] PathfindDistanceResult% pathfindResult);
 			static bool CancelGetPathfindDistance(uint32 id);
+			static Matrix3D GetMultiplayerSpawnLocation(int team, ISoldierGameObj^ soldier);
+			static void EnableSpawnersByName(String^ name, bool enable);
+			static bool IsPathfindGenerated();
+			static Vector3 GetClosestPathfindSpot(Vector3 center, float maxDistance);
+			static Vector3 GetClosestPathfindSpotSize(Vector3 center, float maxDistance, float minSectorSize);
+			static int GetRadioCommandString(int index);
+			static int SetEmotIcon(ISoldierGameObj^ obj, int emoticonId);
+			static bool KillMessagesDisabled();
+			static bool IsSidebarEnabled();
+			static bool IsExtrasEnabled();
+			static bool CanBuildGround(int team);
+			static bool CanBuildAir(int team);
+			static bool CanBuildNaval(int team);
+			static bool IsSoldierBusy(ISoldierGameObj^ obj);
+			static bool IsOnEnemyPedestal(IBeaconGameObj^ obj);
+			static Vector3 FindClosestPolyPosition(IBuildingGameObj^ building, Vector3 pos);
+			static int SayDynamicDialogue(int text_id, ISoldierGameObj^ speaker);
+			static int SayDynamicDialoguePlayer(IScriptableGameObj^ player, int text_id, ISoldierGameObj^ speaker);
+			static int SayDynamicDialogueTeam(int text_id, ISoldierGameObj^ speaker, int team);
+			static void EnableLetterboxPlayer(IScriptableGameObj^ player, bool onoff, float seconds);
+			static int CreateSoundTeam(String^ soundname, Vector3 position, IScriptableGameObj^ obj2, int team);
+			static int Create2DSoundTeam(String^ soundname, int team);
+			static int Create2DWAVSoundTeam(String^ soundname, int team);
+			static int Create2DWAVSoundTeamDialog(String^ soundname, int team);
+			static int Create2DWAVSoundTeamCinematic(String^ soundname, int team);
+			static int Create3DWAVSoundAtBoneTeam(String^ soundname, IScriptableGameObj^ obj, String^ bonename, int team);
+			static int Create3DSoundAtBoneTeam(String^ soundname, IScriptableGameObj^ obj, String^ bonename, int team);
+			static int StopSoundPlayer(IScriptableGameObj^ player, int sound_id, bool destroy_sound);
+			static int StopSoundTeam(int sound_id, bool destroy_sound, int team);
+			static int SetSubobjectAnimation(IScriptableGameObj^ obj, String^ animation, bool looping, String^ subobject, float startFrame, float endFrame, bool blended);
+			static void SetTimeScale(float scale);
+			static int SetSubobjectAnimationPlayer(IScriptableGameObj^ player, IScriptableGameObj^ obj, String^ animation, bool looping, String^ subobject, float startFrame, float endFrame, bool blended);
+			static int WriteFileAsync(String^ _FileName, String^ _Text);
+			static IUnmanagedContainer<IDynamicVectorClass<int>^> ^GetEnlistedPurchaseItems(int team);
+			static IUnmanagedContainer<IDynamicVectorClass<int>^>^ GetPurchaseItems(int team, int defType);
+			static bool IsPresetPurchasableInList(int id, int team, IPurchaseSettingsDefClass::TypeEnum def);
+			static bool IsInfantryPurchaseable(String^ preset, int team);
+			static bool IsVehiclePurchaseable(String^ preset, int team);
 			static void KillAllBuildingsByTeam(int team);
 			static void SetOccupantsFade(IScriptableGameObj ^obj, Color color);
 			static void EnableTeamRadar(int team, bool enable);
-			static void CreateSoundTeam(String ^soundName, Vector3 position, IScriptableGameObj ^obj, int team);
-			static void Create2DSoundTeam(String ^soundName, int team);
-			static void Create2DWAVSoundTeam(String ^soundName, int team);
-			static void Create2DWAVSoundTeamDialog(String ^soundName, int team);
-			static void Create2DWAVSoundTeamCinematic(String^ soundName, int team);
-			static void Create3DWAVSoundAtBoneTeam(String ^soundName, IScriptableGameObj ^obj, String ^boneName, int team);
-			static void Create3DSoundAtBoneTeam(String ^soundName, IScriptableGameObj ^obj, String ^boneName, int team);
 			static void SendMessageTeam(int team, Color color, String ^msg);
 			static void SendMessageWithObjColor(IScriptableGameObj ^obj, String ^msg);
 			static void SendMessageWithTeamColor(int team, String ^msg);

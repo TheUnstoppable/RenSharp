@@ -3409,6 +3409,63 @@ namespace RenSharp
 		return result;
 	}
 
+	Vector3 Engine::Test_Raycast_Collision(Vector3 pos1, Vector3 pos2, bool checkDynamicObjects, IScriptableGameObj^ compareObj)
+	{
+		if (::Test_Raycast_Collision == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (compareObj == nullptr || compareObj->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("compareObj");
+		}
+
+		::Vector3 unmanagedPos1, unmanagedPos2, unmanagedContactPoint;
+		Vector3::ManagedToUnmanagedVector3(pos1, unmanagedPos1);
+		Vector3::ManagedToUnmanagedVector3(pos2, unmanagedPos2);
+
+		if (::Test_Raycast_Collision(unmanagedPos1, unmanagedPos2, checkDynamicObjects, &unmanagedContactPoint,
+			reinterpret_cast<::ScriptableGameObj*>(compareObj->ScriptableGameObjPointer.ToPointer())))
+		{
+			return Vector3(0,0,0);
+		}
+		else
+		{
+			Vector3 Result;
+			Vector3::UnmanagedToManagedVector3(unmanagedContactPoint, Result);
+			return Result;
+		}
+	}
+
+	bool Engine::IsInsideAABox(AABoxClass box, Vector3 pos)
+	{
+		if (::Is_Inside_AABox == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		::Vector3 unmanagedPos;
+		::AABoxClass unmanagedBox;
+		Vector3::ManagedToUnmanagedVector3(pos, unmanagedPos);
+		AABoxClass::ManagedToUnmanagedAABoxClass(box, unmanagedBox);
+
+		return ::Is_Inside_AABox(unmanagedBox, unmanagedPos);
+	}
+
+	bool Engine::CanGenericSoldierTeleport(Vector3 position)
+	{
+		if (::Can_Generic_Soldier_Teleport == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		::Vector3 unmanagedPosition;
+		Vector3::ManagedToUnmanagedVector3(position, unmanagedPosition);
+
+		return ::Can_Generic_Soldier_Teleport(unmanagedPosition);
+	}
+
 	void Engine::CreateLightning(IAmmoDefinitionClass ^ammoDef, Vector3 start, Vector3 end)
 	{
 		if (::Create_Lightning == nullptr)
@@ -4259,6 +4316,319 @@ namespace RenSharp
 		return ::Cancel_Get_Pathfind_Distance(id);
 	}
 
+	Matrix3D Engine::GetMultiplayerSpawnLocation(int team, ISoldierGameObj^ soldier)
+	{
+		if (::Get_Multiplayer_Spawn_Location == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (soldier == nullptr || soldier->SoldierGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("soldier");
+		}
+
+		::Matrix3D Matrix;
+		::Get_Multiplayer_Spawn_Location(team, 
+			reinterpret_cast<::SoldierGameObj*>(soldier->SoldierGameObjPointer.ToPointer()),
+			Matrix);
+		
+		Matrix3D Result;
+		Matrix3D::UnmanagedToManagedMatrix3D(Matrix, Result);
+
+		return Result;
+	}
+
+	void Engine::EnableSpawnersByName(String^ name, bool enable)
+	{
+		if (::Enable_Spawners_By_Name == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		IntPtr nameHandle = Marshal::StringToHGlobalAnsi(name);
+		try
+		{
+			::Enable_Spawners_By_Name(reinterpret_cast<char*>(nameHandle.ToPointer()), enable);
+		}
+		finally
+		{
+			Marshal::FreeHGlobal(nameHandle);
+		}
+	}
+
+	bool Engine::IsPathfindGenerated()
+	{
+		if (::Is_Pathfind_Generated == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Is_Pathfind_Generated();
+	}
+
+	Vector3 Engine::GetClosestPathfindSpot(Vector3 center, float maxDistance)
+	{
+		if (::Get_Closest_Pathfind_Spot == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		::Vector3 unmanagedCenter, unmanagedPosition;
+		Vector3::ManagedToUnmanagedVector3(center, unmanagedCenter);
+
+		::Get_Closest_Pathfind_Spot(unmanagedCenter, maxDistance, &unmanagedPosition);
+
+		Vector3 Result;
+		Vector3::UnmanagedToManagedVector3(unmanagedPosition, Result);
+		return Result;
+	}
+
+	Vector3 Engine::GetClosestPathfindSpotSize(Vector3 center, float maxDistance, float minSectorSize)
+	{
+		if (::Get_Closest_Pathfind_Spot_Size == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		::Vector3 unmanagedCenter, unmanagedPosition;
+		Vector3::ManagedToUnmanagedVector3(center, unmanagedCenter);
+
+		::Get_Closest_Pathfind_Spot_Size(unmanagedCenter, maxDistance, &unmanagedPosition, minSectorSize);
+
+		Vector3 Result;
+		Vector3::UnmanagedToManagedVector3(unmanagedPosition, Result);
+		return Result;
+	}
+
+	int Engine::GetRadioCommandString(int index)
+	{
+		if (::Get_Radio_Command_String == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Get_Radio_Command_String(index);
+	}
+
+	int Engine::SetEmotIcon(ISoldierGameObj^ obj, int emoticonId)
+	{
+		if (::Set_Emot_Icon == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (obj == nullptr || obj->SoldierGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("obj");
+		}
+
+		return ::Set_Emot_Icon(reinterpret_cast<::SoldierGameObj*>(obj->SoldierGameObjPointer.ToPointer()),
+			emoticonId);
+	}
+
+	bool Engine::KillMessagesDisabled()
+	{
+		if (::Kill_Messages_Disabled == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Kill_Messages_Disabled();
+	}
+
+	bool Engine::IsSidebarEnabled()
+	{
+		if (::Is_Sidebar_Enabled == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Is_Sidebar_Enabled();
+	}
+
+	bool Engine::IsExtrasEnabled()
+	{
+		if (::Is_Extras_Enabled == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Is_Extras_Enabled();
+	}
+
+	bool Engine::CanBuildGround(int team)
+	{
+		if (::Can_Build_Ground == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Can_Build_Ground(team);
+	}
+
+	bool Engine::CanBuildAir(int team)
+	{
+		if (::Can_Build_Air == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Can_Build_Air(team);
+	}
+
+	bool Engine::CanBuildNaval(int team)
+	{
+		if (::Can_Build_Naval == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Can_Build_Naval(team);
+	}
+
+	bool Engine::IsSoldierBusy(ISoldierGameObj^ obj)
+	{
+		if (::Is_Soldier_Busy == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (obj == nullptr || obj->SoldierGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("obj");
+		}
+
+		return ::Is_Soldier_Busy(reinterpret_cast<::SoldierGameObj*>(obj->SoldierGameObjPointer.ToPointer()));
+	}
+
+	bool Engine::IsOnEnemyPedestal(IBeaconGameObj^ obj)
+	{
+		if (::Is_On_Enemy_Pedestal == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (obj == nullptr || obj->BeaconGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("obj");
+		}
+
+		return ::Is_On_Enemy_Pedestal(reinterpret_cast<::BeaconGameObj*>(obj->BeaconGameObjPointer.ToPointer()));
+	}
+
+	Vector3 Engine::FindClosestPolyPosition(IBuildingGameObj^ building, Vector3 pos)
+	{
+		if (::Find_Closest_Poly_Position == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (building == nullptr || building->BuildingGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("building");
+		}
+
+		::Vector3 unmanagedPos, unmanagedPolyPos;
+		Vector3::ManagedToUnmanagedVector3(pos, unmanagedPos);
+
+		::Find_Closest_Poly_Position(reinterpret_cast<::BuildingGameObj*>(building->BuildingGameObjPointer.ToPointer()), 
+			unmanagedPos, 
+			&unmanagedPolyPos);
+
+		Vector3 Result;
+		Vector3::UnmanagedToManagedVector3(unmanagedPolyPos, Result);
+		
+		return Result;
+	}
+
+	int Engine::SayDynamicDialogue(int text_id, ISoldierGameObj^ speaker)
+	{
+		if (::Say_Dynamic_Dialogue == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (speaker == nullptr || speaker->SoldierGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("speaker");
+		}
+
+		int soundID;
+
+		::Say_Dynamic_Dialogue(text_id,
+			reinterpret_cast<::SoldierGameObj*>(speaker->SoldierGameObjPointer.ToPointer()),
+			&soundID);
+
+		return soundID;
+	}
+
+	int Engine::SayDynamicDialoguePlayer(IScriptableGameObj^ player, int text_id, ISoldierGameObj^ speaker)
+	{
+		if (::Say_Dynamic_Dialogue_Player == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (player == nullptr || player->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("player");
+		}
+
+		if (speaker == nullptr || speaker->SoldierGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("speaker");
+		}
+
+		int soundID;
+
+		::Say_Dynamic_Dialogue_Player(reinterpret_cast<::GameObject*>(player->ScriptableGameObjPointer.ToPointer()),
+			text_id,
+			reinterpret_cast<::SoldierGameObj*>(speaker->SoldierGameObjPointer.ToPointer()),
+			&soundID);
+
+		return soundID;
+	}
+
+	int Engine::SayDynamicDialogueTeam(int text_id, ISoldierGameObj^ speaker, int team)
+	{
+		if (::Say_Dynamic_Dialogue_Team == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (speaker == nullptr || speaker->SoldierGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("speaker");
+		}
+
+		int soundID;
+
+		::Say_Dynamic_Dialogue_Team(text_id,
+			reinterpret_cast<::SoldierGameObj*>(speaker->SoldierGameObjPointer.ToPointer()),
+			&soundID,
+			team);
+
+		return soundID;
+	}
+
+	void Engine::EnableLetterboxPlayer(IScriptableGameObj^ player, bool onoff, float seconds)
+	{
+		if (::Enable_Letterbox_Player == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (player == nullptr || player->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("player");
+		}
+
+		::Enable_Letterbox_Player(reinterpret_cast<::GameObject*>(player->ScriptableGameObjPointer.ToPointer()),
+			onoff,
+			seconds);
+	}
+
 	void Engine::KillAllBuildingsByTeam(int team)
 	{
 		::Kill_All_Buildings_By_Team(team);
@@ -4284,7 +4654,7 @@ namespace RenSharp
 		::Enable_Team_Radar(team, enable);
 	}
 
-	void Engine::CreateSoundTeam(String ^soundName, Vector3 position, IScriptableGameObj ^obj, int team)
+	int Engine::CreateSoundTeam(String ^soundName, Vector3 position, IScriptableGameObj ^obj, int team)
 	{
 		if (soundName == nullptr)
 		{
@@ -4300,9 +4670,10 @@ namespace RenSharp
 		Vector3::ManagedToUnmanagedVector3(position, positionVec);
 
 		IntPtr soundNameHandle = Marshal::StringToHGlobalAnsi(soundName);
+		int result = 0;
 		try
 		{
-			::Create_Sound_Team(
+			result = ::Create_Sound_Team(
 				reinterpret_cast<char *>(soundNameHandle.ToPointer()),
 				positionVec,
 				reinterpret_cast<::ScriptableGameObj *>(obj->ScriptableGameObjPointer.ToPointer()),
@@ -4312,9 +4683,11 @@ namespace RenSharp
 		{
 			Marshal::FreeHGlobal(soundNameHandle);
 		}
+
+		return result;
 	}
 
-	void Engine::Create2DSoundTeam(String ^soundName, int team)
+	int Engine::Create2DSoundTeam(String ^soundName, int team)
 	{
 		if (soundName == nullptr)
 		{
@@ -4322,9 +4695,10 @@ namespace RenSharp
 		}
 
 		IntPtr soundNameHandle = Marshal::StringToHGlobalAnsi(soundName);
+		int result = 0;
 		try
 		{
-			::Create_2D_Sound_Team(
+			result = ::Create_2D_Sound_Team(
 				reinterpret_cast<char *>(soundNameHandle.ToPointer()),
 				team);
 		}
@@ -4332,9 +4706,11 @@ namespace RenSharp
 		{
 			Marshal::FreeHGlobal(soundNameHandle);
 		}
+
+		return result;
 	}
 
-	void Engine::Create2DWAVSoundTeam(String ^soundName, int team)
+	int Engine::Create2DWAVSoundTeam(String ^soundName, int team)
 	{
 		if (soundName == nullptr)
 		{
@@ -4342,9 +4718,10 @@ namespace RenSharp
 		}
 
 		IntPtr soundNameHandle = Marshal::StringToHGlobalAnsi(soundName);
+		int result = 0;
 		try
 		{
-			::Create_2D_WAV_Sound_Team(
+			result = ::Create_2D_WAV_Sound_Team(
 				reinterpret_cast<char *>(soundNameHandle.ToPointer()),
 				team);
 		}
@@ -4352,9 +4729,11 @@ namespace RenSharp
 		{
 			Marshal::FreeHGlobal(soundNameHandle);
 		}
+
+		return result;
 	}
 
-	void Engine::Create2DWAVSoundTeamDialog(String ^soundName, int team)
+	int Engine::Create2DWAVSoundTeamDialog(String ^soundName, int team)
 	{
 		if (soundName == nullptr)
 		{
@@ -4362,9 +4741,10 @@ namespace RenSharp
 		}
 
 		IntPtr soundNameHandle = Marshal::StringToHGlobalAnsi(soundName);
+		int result = 0;
 		try
 		{
-			::Create_2D_WAV_Sound_Team_Dialog(
+			result = ::Create_2D_WAV_Sound_Team_Dialog(
 				reinterpret_cast<char *>(soundNameHandle.ToPointer()),
 				team);
 		}
@@ -4372,9 +4752,11 @@ namespace RenSharp
 		{
 			Marshal::FreeHGlobal(soundNameHandle);
 		}
+
+		return result;
 	}
 
-	void Engine::Create2DWAVSoundTeamCinematic(String^ soundName, int team)
+	int Engine::Create2DWAVSoundTeamCinematic(String^ soundName, int team)
 	{
 		if (soundName == nullptr)
 		{
@@ -4382,9 +4764,10 @@ namespace RenSharp
 		}
 
 		IntPtr soundNameHandle = Marshal::StringToHGlobalAnsi(soundName);
+		int result = 0;
 		try
 		{
-			::Create_2D_WAV_Sound_Team_Cinematic(
+			result = ::Create_2D_WAV_Sound_Team_Cinematic(
 				reinterpret_cast<char*>(soundNameHandle.ToPointer()),
 				team);
 		}
@@ -4392,9 +4775,11 @@ namespace RenSharp
 		{
 			Marshal::FreeHGlobal(soundNameHandle);
 		}
+
+		return result;
 	}
 
-	void Engine::Create3DWAVSoundAtBoneTeam(String ^soundName, IScriptableGameObj ^obj, String ^boneName, int team)
+	int Engine::Create3DWAVSoundAtBoneTeam(String ^soundName, IScriptableGameObj ^obj, String ^boneName, int team)
 	{
 		if (soundName == nullptr)
 		{
@@ -4410,12 +4795,13 @@ namespace RenSharp
 		}
 
 		IntPtr soundNameHandle = Marshal::StringToHGlobalAnsi(soundName);
+		int result = 0;
 		try
 		{
 			IntPtr boneNameHandle = Marshal::StringToHGlobalAnsi(boneName);
 			try
 			{
-				::Create_3D_WAV_Sound_At_Bone_Team(
+				result = ::Create_3D_WAV_Sound_At_Bone_Team(
 					reinterpret_cast<char *>(soundNameHandle.ToPointer()),
 					reinterpret_cast<::ScriptableGameObj *>(obj->ScriptableGameObjPointer.ToPointer()),
 					reinterpret_cast<char *>(boneNameHandle.ToPointer()),
@@ -4430,9 +4816,11 @@ namespace RenSharp
 		{
 			Marshal::FreeHGlobal(soundNameHandle);
 		}
+
+		return result;
 	}
 
-	void Engine::Create3DSoundAtBoneTeam(String ^soundName, IScriptableGameObj ^obj, String ^boneName, int team)
+	int Engine::Create3DSoundAtBoneTeam(String ^soundName, IScriptableGameObj ^obj, String ^boneName, int team)
 	{
 		if (soundName == nullptr)
 		{
@@ -4448,12 +4836,13 @@ namespace RenSharp
 		}
 
 		IntPtr soundNameHandle = Marshal::StringToHGlobalAnsi(soundName);
+		int result = 0;
 		try
 		{
 			IntPtr boneNameHandle = Marshal::StringToHGlobalAnsi(boneName);
 			try
 			{
-				::Create_3D_Sound_At_Bone_Team(
+				result = ::Create_3D_Sound_At_Bone_Team(
 					reinterpret_cast<char *>(soundNameHandle.ToPointer()),
 					reinterpret_cast<::ScriptableGameObj *>(obj->ScriptableGameObjPointer.ToPointer()),
 					reinterpret_cast<char *>(boneNameHandle.ToPointer()),
@@ -4468,6 +4857,91 @@ namespace RenSharp
 		{
 			Marshal::FreeHGlobal(soundNameHandle);
 		}
+
+		return result;
+	}
+
+	int Engine::StopSoundPlayer(IScriptableGameObj^ player, int sound_id, bool destroy_sound)
+	{
+		return 0;
+	}
+
+	int Engine::StopSoundTeam(int sound_id, bool destroy_sound, int team)
+	{
+		return 0;
+	}
+
+	int Engine::SetSubobjectAnimation(IScriptableGameObj^ obj, String^ animation, bool looping, String^ subobject, float startFrame, float endFrame, bool blended)
+	{
+		return 0;
+	}
+
+	void Engine::SetTimeScale(float scale)
+	{
+		throw gcnew System::NotImplementedException();
+	}
+
+	int Engine::SetSubobjectAnimationPlayer(IScriptableGameObj^ player, IScriptableGameObj^ obj, String^ animation, bool looping, String^ subobject, float startFrame, float endFrame, bool blended)
+	{
+		return 0;
+	}
+
+	int Engine::WriteFileAsync(String^ _FileName, String^ _Text)
+	{
+		return 0;
+	}
+
+	IUnmanagedContainer<IDynamicVectorClass<int>^>^ Engine::GetEnlistedPurchaseItems(int team)
+	{
+		auto Vector = ::Get_Enlisted_Purchase_Items(team);
+		IUnmanagedContainer<IDynamicVectorClass<int>^>^ ManagedVector = gcnew UnmanagedContainer<IDynamicVectorClass<int>^>(gcnew Int32DynamicVectorClass(IntPtr(&Vector)));
+		return ManagedVector;
+	}
+
+	IUnmanagedContainer<IDynamicVectorClass<int>^>^ Engine::GetPurchaseItems(int team, int defType)
+	{
+		auto Vector = ::Get_Purchase_Items(team, defType);
+		IUnmanagedContainer<IDynamicVectorClass<int>^>^ ManagedVector = gcnew UnmanagedContainer<IDynamicVectorClass<int>^>(gcnew Int32DynamicVectorClass(IntPtr(&Vector)));
+		return ManagedVector;
+	}
+
+	bool Engine::IsPresetPurchasableInList(int id, int team, IPurchaseSettingsDefClass::TypeEnum def)
+	{
+		return ::Is_Preset_Purchasable_In_List(id, team, static_cast<::PurchaseSettingsDefClass::TYPE>(def));
+	}
+
+	bool Engine::IsInfantryPurchaseable(String^ preset, int team)
+	{
+		IntPtr presetHandle = Marshal::StringToHGlobalAnsi(preset);
+		bool result = false;
+
+		try
+		{
+			result = ::Is_Infantry_Purchaseable(reinterpret_cast<char*>(presetHandle.ToPointer()), team);
+		}
+		finally
+		{
+			Marshal::FreeHGlobal(presetHandle);
+		}
+
+		return result;
+	}
+
+	bool Engine::IsVehiclePurchaseable(String^ preset, int team)
+	{
+		IntPtr presetHandle = Marshal::StringToHGlobalAnsi(preset);
+		bool result = false;
+
+		try
+		{
+			result = ::Is_Vehicle_Purchaseable(reinterpret_cast<char*>(presetHandle.ToPointer()), team);
+		}
+		finally
+		{
+			Marshal::FreeHGlobal(presetHandle);
+		}
+
+		return result;
 	}
 
 	void Engine::SendMessageTeam(int team, Color color, String ^msg)
