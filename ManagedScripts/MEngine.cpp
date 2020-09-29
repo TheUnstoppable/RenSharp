@@ -7202,7 +7202,7 @@ static ::cPlayer* NickSavePlayer = nullptr;
 		IntPtr modelHandle = Marshal::StringToHGlobalAnsi(model);
 		try
 		{
-			::Set_Emot_Icon(
+			::Set_Emote_Icon(
 				id,
 				reinterpret_cast<char*>(modelHandle.ToPointer()),
 				team);
