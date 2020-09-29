@@ -26,6 +26,7 @@ public:
 	PersistClass* Create() const;
 	int Is_Nuke() const {return IsNuke;}
 	bool Requires_Silo() const {return RequiresSilo;}
+	int Get_Explosion_Obj_Def() const {return ExplosionObjDef;}
 #ifdef DDBEDIT
 	virtual void                        Dump (FileClass &file);
 #endif

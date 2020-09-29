@@ -240,7 +240,7 @@ bool DAGameObjManager::Vehicle_Entry_Request_Event(VehicleGameObj *Vehicle,cPlay
 			}
 		}
 	}
-	SoldierGameObj *Soldier = Player->Get_GameObj();
+	SoldierGameObj *Soldier = Player ? Player->Get_GameObj() : Vehicle->Get_Occupant(Seat);
 	for (int i = 0;i < Soldier->Get_Observers().Count();i++) {
 		if (Is_DAGameObjObserverClass(Soldier->Get_Observers()[i])) {
 			if (!((DAGameObjObserverClass*)Soldier->Get_Observers()[i])->Vehicle_Entry_Request(Vehicle,Seat)) {
@@ -257,7 +257,7 @@ void DAGameObjManager::Vehicle_Enter_Event(VehicleGameObj *Vehicle,cPlayer *Play
 			((DAGameObjObserverClass*)Vehicle->Get_Observers()[i])->Vehicle_Enter(Player,Seat);
 		}
 	}
-	SoldierGameObj *Soldier = Player->Get_GameObj();
+	SoldierGameObj *Soldier = Player ? Player->Get_GameObj() : Vehicle->Get_Occupant(Seat);
 	for (int i = 0;i < Soldier->Get_Observers().Count();i++) {
 		if (Is_DAGameObjObserverClass(Soldier->Get_Observers()[i])) {
 			((DAGameObjObserverClass*)Soldier->Get_Observers()[i])->Vehicle_Enter(Vehicle,Seat);
@@ -271,7 +271,7 @@ void DAGameObjManager::Vehicle_Exit_Event(VehicleGameObj *Vehicle,cPlayer *Playe
 			((DAGameObjObserverClass*)Vehicle->Get_Observers()[i])->Vehicle_Exit(Player,Seat);
 		}
 	}
-	SoldierGameObj *Soldier = Player->Get_GameObj();
+	SoldierGameObj *Soldier = Player ? Player->Get_GameObj() : Vehicle->Get_Occupant(Seat);
 	for (int i = 0;i < Soldier->Get_Observers().Count();i++) {
 		if (Is_DAGameObjObserverClass(Soldier->Get_Observers()[i])) {
 			((DAGameObjObserverClass*)Soldier->Get_Observers()[i])->Vehicle_Exit(Vehicle,Seat);

@@ -845,7 +845,7 @@ void JFW_Cinematic::Parse_Command(char *command)
 	{
 		Command_Add_Object(command);
 	}
-	else if (Title_Match(&command,"Create_Exploision"))
+	else if (Title_Match(&command,"Create_Explosion"))
 	{
 		Command_Create_Explosion(command);
 	}
@@ -1048,7 +1048,8 @@ void JFW_Cinematic::Command_Play_Animation(char *command)
 		GameObject *obj = Commands->Find_Object(Slots[slot]);
 		if (obj)
 		{
-			Commands->Set_Animation(obj,animation,loop,subobject,f2,-1,blended);
+			Update_Network_Object(obj);
+			Set_Subobject_Animation(obj,animation,loop,subobject,f2,-1,blended);
 			if (CameraControl)
 			{
 				Commands->Innate_Disable(obj);

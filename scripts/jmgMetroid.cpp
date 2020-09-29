@@ -4856,6 +4856,8 @@ void JMG_Metroid_Objective_Update_On_Custom::Custom(GameObject *obj,int message,
 }
 void JMG_AI_Artillery_Targeting_Fire_At_Custom::Created(GameObject *obj)
 {
+	if (obj->As_SoldierGameObj())
+		obj->As_SoldierGameObj()->Set_Override_Muzzle_Direction(true);
 	const char *weap = Get_Current_Weapon(obj);
 	if (!weap)
 		return;
@@ -4875,7 +4877,7 @@ void JMG_AI_Artillery_Targeting_Fire_At_Custom::Custom(GameObject *obj,int messa
 			seen = sender;
 		if (Get_Vehicle_Driver(seen))
 			seen = Get_Vehicle_Driver(seen);
-		Vector3 myPos = Commands->Get_Position(obj),enemyPos = Commands->Get_Position(seen);
+		Vector3 myPos = obj->As_SoldierGameObj() ? Commands->Get_Bone_Position(obj,"gunbone") : Commands->Get_Bone_Position(obj,"MuzzleA0"),enemyPos = Commands->Get_Position(seen);
 		float targetDist = JmgUtility::SimpleDistance(myPos,enemyPos),targetFlatDistance = JmgUtility::SimpleFlatDistance(myPos,enemyPos),minDistanceSquared = Get_Float_Parameter("MinDistance")*Get_Float_Parameter("MinDistance");
 		if (targetDist < minDistanceSquared)
 			return;
@@ -4884,17 +4886,17 @@ void JMG_AI_Artillery_Targeting_Fire_At_Custom::Custom(GameObject *obj,int messa
 			useHighAngle = false;
 		else if (Get_Int_Parameter("UseLowAngleWhenAboveMinDistance") && targetFlatDistance <= minDistanceSquared)
 			useHighAngle = false;
-		else if (Get_Float_Parameter("UseLowAngleTargetAboveHeight") && Commands->Get_Position(obj).Z+Get_Float_Parameter("UseLowAngleTargetAboveHeight") < Commands->Get_Position(seen).Z)
+		else if (Get_Float_Parameter("UseLowAngleTargetAboveHeight") && myPos.Z+Get_Float_Parameter("UseLowAngleTargetAboveHeight") < Commands->Get_Position(seen).Z)
 			useHighAngle = false;
 		double height = enemyPos.Z-myPos.Z,angle;
 		myPos.Z = enemyPos.Z = 0.0f;
 		if (!CalculateAngle(&angle,Commands->Get_Distance(enemyPos,myPos),height,useHighAngle))
 			return;
 		float TempRotation = atan2(enemyPos.Y-myPos.Y,enemyPos.X-myPos.X);
-		Vector3 pos = Commands->Get_Bone_Position(obj,"barrel");
-		pos.X += (float)cos(TempRotation);
-		pos.Y += (float)sin(TempRotation);
-		pos.Z += (float)tan(angle*PI/180);
+		Vector3 pos = obj->As_SoldierGameObj() ? Commands->Get_Bone_Position(obj,"gunbone") : Commands->Get_Bone_Position(obj,"MuzzleA0");
+		pos.X += (float)cos(TempRotation)*10.0f;
+		pos.Y += (float)sin(TempRotation)*10.0f;
+		pos.Z += (float)tan(angle*PI/180)*10.0f;
 		ActionParamsStruct params;
 		params.Set_Attack(pos,100000.0f,0,1);
 		params.AttackForceFire = false;

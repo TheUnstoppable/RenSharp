@@ -19,13 +19,13 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -107,6 +107,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>..\bin\release</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+	  <MinimumRequiredVersion>6.01</MinimumRequiredVersion>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -166,6 +167,7 @@
       <AdditionalLibraryDirectories>..\bin\debug</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <MinimumRequiredVersion>6.01</MinimumRequiredVersion>
     </Link>
     <PostBuildEvent>
       <Command>if defined RenPath (
@@ -319,9 +321,12 @@ copy "$(TargetPath)" "%RenServerPath%\$(TargetFileName)"
     <ClCompile Include="mdb.cpp" />
     <ClCompile Include="mdbdef.cpp" />
     <ClCompile Include="mdbevf.cpp" />
+    <ClCompile Include="ms.cpp" />
+    <ClCompile Include="ms_ai.cpp" />
     <ClCompile Include="neo.cpp" />
     <ClCompile Include="nh.cpp" />
     <ClCompile Include="nhp.cpp" />
+    <ClCompile Include="ObjectLibraryManager.cpp" />
     <ClCompile Include="PersistFactoryClass.cpp" />
     <ClCompile Include="da_player.cpp" />
     <ClCompile Include="PointerRemapClass.cpp" />
@@ -558,6 +563,7 @@ copy "$(TargetPath)" "%RenServerPath%\$(TargetFileName)"
     <ClInclude Include="mdbevf.h" />
     <ClInclude Include="MixFileFactoryClass.h" />
     <ClInclude Include="MoveablePhysDefClass.h" />
+	<ClInclude Include="ms.h" />
     <ClInclude Include="MuzzleFlashClass.h" />
     <ClInclude Include="MuzzleRecoilClass.h" />
     <ClInclude Include="NavalFactoryGameObj.h" />
@@ -567,6 +573,7 @@ copy "$(TargetPath)" "%RenServerPath%\$(TargetFileName)"
     <ClInclude Include="nh.h" />
     <ClInclude Include="nhp.h" />
     <ClInclude Include="obboxclass.h" />
+	<ClInclude Include="ObjectLibraryManager.h" />
     <ClInclude Include="ObserverImpClass.h" />
     <ClInclude Include="OffenseObjectClass.h" />
     <ClInclude Include="Parameter.h" />

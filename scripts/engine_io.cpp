@@ -570,6 +570,26 @@ int INIClass::Get_String(char const *section,char const *entry,char const *defau
 	strtrim(result);
 	return (int)strlen(result);
 }
+int INIClass::Get_String_Advanced(char const *section,char const *entry,char const *defaultvalue,char *result,int size,bool updateIfNotFound) const
+{
+	if (!result || size <= 1 || !section || !entry)
+		return 0;
+	INIEntry *Entry = Find_Entry(section,entry);
+	const char *value = defaultvalue;
+	if (Entry && Entry->Value)
+		value = Entry->Value;
+	if ((!Entry || !Entry->Value) && !updateIfNotFound) 
+		return 0;
+	if (!value)
+	{
+		result[0] = 0;
+		return 0;
+	}
+	strncpy(result, value, size);
+	result[size - 1] = 0;
+	strtrim(result);
+	return (int)strlen(result);
+}
 int INIClass::Entry_Count(char const *section) const
 {
 	INISection *Section = Find_Section(section);

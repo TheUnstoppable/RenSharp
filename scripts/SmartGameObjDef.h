@@ -26,6 +26,12 @@ public:
 	virtual bool								Save( ChunkSaveClass &csave );
 	virtual bool								Load( ChunkLoadClass &cload );
 	bool Is_Stealthed() const {return IsStealthUnit;}
+	/* Modifies the sight range of the object. SightRange is used by AI code only. */
+	void Set_Sight_Range (const float range) { SightRange = range; }
+	float Get_Sight_Range() const {return SightRange;}
+	/* Modifies the sight arc of the object. SightArc is used by AI code only. */
+	void Set_Sight_Arc (const float arc) { SightArc = arc; }
+	float Get_Sight_Arc() const {return SightArc;}
 #ifdef DDBEDIT
 	virtual void                        Dump (FileClass &file);
 #endif

@@ -157,6 +157,7 @@ class JMG_Utility_Poke_Send_Self_Custom : public ScriptImpClass {
 	void Poked(GameObject *obj, GameObject *poker);
 	void Timer_Expired(GameObject *obj,int number);
 };
+
 /*!
 * \brief Basic turret attach script, turrets match team of vehicle attached to, turrets are destroyed by destroy event
 * \Turret_Preset - Preset of the turret
@@ -860,6 +861,37 @@ public:
 	}
 };
 
+/*!
+* \brief Creates a game object at the location of the objective's objective marker while active
+* \ObjectivePriority - Priorities of the objectives that this will create gameobjects for (-2 means ignore requirement)
+* \ObjectiveID - ID of the objective that this will create gameobjects for (-2 means ignore requirement)
+* \Preset - Name of the preset to create
+* \Attach - Should this be attached to the radar marker
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Objective_System_Objective_GameObject : public ScriptImpClass {
+	void Created(GameObject *obj);
+public:
+	int objectiveId;
+	int objectivePriority;
+	char preset[128];
+	bool attach;
+};
+/*!
+* \brief Attached by the objective controller so the code can remove the object when needed
+* \GameObjectID - ID of the gameobject that was created by the controller
+* \MarkerID - ID of the radar marker that this object is tracking
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Objective_System_Objective_GameObject_Tracker : public ScriptImpClass {
+	void Created(GameObject *obj);
+public:
+	int gameObjectId;
+	int markerId;
+};
+
 class NewObjectiveSystem
 {
 	bool objectiveStringIdsLoaded;
@@ -880,6 +912,7 @@ class NewObjectiveSystem
 public:
 	enum Priority{Undefined=-1,Unknown,Primary,Secondary,Tertiary,Quaternary,Quinary,Senary,Septenary,Octonary,Nonary,Denary,Bonus};
 	enum Status{Removed=-2,NotDefined=-1,Pending,Accomplished,Failed,Hidden};
+	int controllerId;
 private:
 	struct ObjectiveNode
 	{
@@ -976,12 +1009,12 @@ private:
 			if (current->id == id)
 				if (current->active)
 				{
-					Destroy_Radar_Marker(Commands->Find_Object(radarMarkerId));
+					Destroy_Radar_Marker(current->radarMarkerId);
 					return false;
 				}
 				else
 				{
-					Destroy_Radar_Marker(Commands->Find_Object(current->radarMarkerId));
+					Destroy_Radar_Marker(current->radarMarkerId);
 					current->id = id;
 					current->priority = priority;
 					current->status = status;
@@ -1011,13 +1044,15 @@ private:
 		}
 		return true;
 	}
-	void Destroy_Radar_Marker(GameObject *marker)
+	void Destroy_Radar_Marker(int markerId)
 	{
+		Destroy_Objective_GameObject(markerId);
+		GameObject *marker = Commands->Find_Object(markerId);
 		if (!marker)
 			return;
 		Commands->Destroy_Object(marker);
 	}
-	GameObject *Create_Radar_Marker(Vector3 pos, Priority priority,const char *modelOverride)
+	GameObject *Create_Radar_Marker(Vector3 pos, Priority priority,int objectiveId,const char *modelOverride)
 	{
 		GameObject *radarMarker = Commands->Create_Object("Daves Arrow",pos);
 		Commands->Set_Player_Type(radarMarker,team);
@@ -1037,6 +1072,7 @@ private:
 			Commands->Set_Obj_Radar_Blip_Shape(radarMarker,RADAR_BLIP_SHAPE_OBJECTIVE);
 			Commands->Set_Obj_Radar_Blip_Color(radarMarker,priority == Primary ? RADAR_BLIP_COLOR_PRIMARY_OBJECTIVE : priority == Secondary ? RADAR_BLIP_COLOR_SECONDARY_OBJECTIVE : RADAR_BLIP_COLOR_TERTIARY_OBJECTIVE);
 		}
+		Create_Objective_GameObject(radarMarker,objectiveId,priority);
 		return radarMarker;
 	}
 public:
@@ -1068,15 +1104,15 @@ public:
 	{
 		if (!blipUnit)
 			return false;
-		GameObject *radarMarker = Create_Radar_Marker(Vector3(),priority,modelOverride);
+		GameObject *radarMarker = Create_Radar_Marker(Commands->Get_Position(blipUnit),priority,objectiveId,modelOverride);
 		if (!radarMarker)
 			return false;
-		Commands->Attach_To_Object_Bone(radarMarker,blipUnit,"origin");
+		Commands->Attach_To_Object_Bone(radarMarker,blipUnit,blipUnit->As_SoldierGameObj() ? "c pelvis" : "origin");
 		return addObjective(objectiveId,priority,status,nameId,soundFilename,descriptionId,Commands->Get_ID(radarMarker),objectiveNumber);
 	}
 	bool Add_Objective(int objectiveId, Priority priority, Status status, unsigned long nameId, char *soundFilename, unsigned long descriptionId,Vector3 blipPosition,const char *modelOverride = NULL,int objectiveNumber = 0)
 	{
-		GameObject *radarMarker = Create_Radar_Marker(blipPosition,priority,modelOverride);
+		GameObject *radarMarker = Create_Radar_Marker(blipPosition,priority,objectiveId,modelOverride);
 		if (!radarMarker)
 			return false;
 		return addObjective(objectiveId,priority,status,nameId,soundFilename,descriptionId,Commands->Get_ID(radarMarker),objectiveNumber);
@@ -1109,11 +1145,11 @@ public:
 		{
 			if (current->id == objectiveId)
 			{
-				Destroy_Radar_Marker(Commands->Find_Object(current->radarMarkerId));
-				GameObject *radarMarker = Create_Radar_Marker(Vector3(),current->priority,modelOverride);
+				Destroy_Radar_Marker(current->radarMarkerId);
+				GameObject *radarMarker = Create_Radar_Marker(Commands->Get_Position(blipUnit),current->priority,objectiveId,modelOverride);
 				if (!radarMarker)
 					return;
-				Commands->Attach_To_Object_Bone(radarMarker,blipUnit,"origin");
+				Commands->Attach_To_Object_Bone(radarMarker,blipUnit,blipUnit->As_SoldierGameObj() ? "c pelvis" : "origin");
 				current->radarMarkerId = Commands->Get_ID(radarMarker);
 				return;
 			}
@@ -1127,7 +1163,7 @@ public:
 		{
 			if (current->id == objectiveId)
 			{
-				Destroy_Radar_Marker(Commands->Find_Object(current->radarMarkerId));
+				Destroy_Radar_Marker(current->radarMarkerId);
 				return;
 			}
 			current = current->next;
@@ -1140,8 +1176,8 @@ public:
 		{
 			if (current->id == objectiveId)
 			{
-				Destroy_Radar_Marker(Commands->Find_Object(current->radarMarkerId));
-				GameObject *radarMarker = Create_Radar_Marker(blipPosition,current->priority,modelOverride);
+				Destroy_Radar_Marker(current->radarMarkerId);
+				GameObject *radarMarker = Create_Radar_Marker(blipPosition,current->priority,objectiveId,modelOverride);
 				if (!radarMarker)
 					return;
 				current->radarMarkerId = Commands->Get_ID(radarMarker);
@@ -1179,7 +1215,7 @@ public:
 							selectMessageAndColor(formatObjectiveString(objectiveCancelledStringNumbered,objectivePrioritieStrings[current->priority],current->objectiveNumber),current->priority);
 						else
 							selectMessageAndColor(formatObjectiveString(objectiveCancelledString,objectivePrioritieStrings[current->priority]),current->priority);
-					Destroy_Radar_Marker(Commands->Find_Object(current->radarMarkerId));
+					Destroy_Radar_Marker(current->radarMarkerId);
 					current->active = false;
 					return true;
 				}
@@ -1373,6 +1409,46 @@ public:
 			return Vector3(1.0f,1.0f,1.0f);
 		}
 	}
+	void Create_Objective_GameObject(GameObject *radarMarker,int objectiveId,int objectivePriority)
+	{
+		GameObject *obj = Commands->Find_Object(controllerId);
+		if (!obj)
+			return;
+		const SimpleDynVecClass<GameObjObserverClass *> & observer_list = obj->Get_Observers();
+		for(int index = 0;index < observer_list.Count();index++)
+			if (!_stricmp(observer_list[index]->Get_Name(),"JMG_Utility_Objective_System_Objective_GameObject"))
+			{
+				JMG_Utility_Objective_System_Objective_GameObject *script = (JMG_Utility_Objective_System_Objective_GameObject*)observer_list[index];
+				if (script && (script->objectiveId == objectiveId || script->objectiveId == -2) && (script->objectivePriority == objectivePriority || script->objectivePriority == -2))
+				{
+					GameObject *object = Commands->Create_Object(script->preset,Commands->Get_Position(radarMarker));
+					if (script->attach)
+						Commands->Attach_To_Object_Bone(object,radarMarker,"origin");
+					char params[128];
+					sprintf(params,"%d,%d",Commands->Get_ID(object),Commands->Get_ID(radarMarker));
+					Commands->Attach_Script(obj,"JMG_Utility_Objective_System_Objective_GameObject_Tracker",params);
+				}
+			}
+	}
+	void Destroy_Objective_GameObject(int markerId)
+	{
+		GameObject *obj = Commands->Find_Object(controllerId);
+		if (!obj)
+			return;
+		const SimpleDynVecClass<GameObjObserverClass *> & observer_list = obj->Get_Observers();
+		for(int index = 0;index < observer_list.Count();index++)
+			if (!_stricmp(observer_list[index]->Get_Name(),"JMG_Utility_Objective_System_Objective_GameObject_Tracker"))
+			{
+				JMG_Utility_Objective_System_Objective_GameObject_Tracker *script = (JMG_Utility_Objective_System_Objective_GameObject_Tracker*)observer_list[index];
+				if (script && script->markerId == markerId)
+				{
+					GameObject *object = Commands->Find_Object(script->gameObjectId);
+					if (object)
+						Commands->Destroy_Object(object);
+					script->Destroy_Script();
+				}
+			}
+	}
 };
 
 class ClientNetworkObjectPositionSync
@@ -1494,6 +1570,393 @@ public:
 	}
 };
 
+class Rp2SimplePositionSystem
+{
+public:
+	struct SimplePositionNode
+	{
+		int id;
+		float facing;
+		Vector3 position;
+		int value;
+		struct SimplePositionNode *next;
+		SimplePositionNode(GameObject *obj,int value = 0)
+		{
+			this->id = Commands->Get_ID(obj);
+			this->facing = Commands->Get_Facing(obj);
+			this->position = Commands->Get_Position(obj);
+			this->value = value;
+			this->next = NULL;
+		}
+	};
+	SimplePositionNode *SimplePositionNodeList;
+	int ObjectCount;
+	Rp2SimplePositionSystem()
+	{
+		ObjectCount = 0;
+		SimplePositionNodeList = NULL;
+	}
+	Rp2SimplePositionSystem &operator += (GameObject *obj)
+	{
+		int id = Commands->Get_ID(obj);
+		SimplePositionNode *Current = SimplePositionNodeList;
+		if (!SimplePositionNodeList)
+			SimplePositionNodeList = new SimplePositionNode(obj);
+		while (Current)
+		{
+			if (Current->id == id)
+				return *this;
+			if (!Current->next)
+			{
+				Current->next = new SimplePositionNode(obj);
+				break;
+			}
+			Current = Current->next;
+		}
+		ObjectCount++;
+		return *this;
+	};
+	Rp2SimplePositionSystem &operator += (SimplePositionNode *node)
+	{
+		SimplePositionNode *Current = SimplePositionNodeList;
+		if (!SimplePositionNodeList)
+			SimplePositionNodeList = node;
+		while (Current)
+		{
+			if (Current->id == node->id)
+				return *this;
+			if (!Current->next)
+			{
+				Current->next = node;
+				break;
+			}
+			Current = Current->next;
+		}
+		ObjectCount++;
+		return *this;
+	};
+	void Empty_List()
+	{
+		ObjectCount = 0;
+		SimplePositionNode *temp,*die;
+		temp = SimplePositionNodeList;
+		while (temp)
+		{
+			die = temp;
+			temp = temp->next;
+			delete die;
+		}
+		SimplePositionNodeList = NULL;
+	}
+	SimplePositionNode *GetRandomFromGroup(int value)
+	{
+		int random = Commands->Get_Random_Int(0,ObjectCount*2),original;
+		original = random;
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			if (random && value == Current->value)
+				random--;
+			if (!random && value == Current->value)
+				return Current;
+			Current = Current->next;
+			if (!Current && original != random && original)
+				Current = SimplePositionNodeList;
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetNextFromGroup(int value,SimplePositionNode *last)
+	{
+		bool found = false;
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			if (found && value == Current->value)
+				return Current;
+			if (Current == last && value == Current->value)
+				found = true;
+			Current = Current->next;
+			if (!Current)
+				Current = SimplePositionNodeList;
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetRandom()
+	{
+		int random = Commands->Get_Random_Int(0,ObjectCount*2);
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			if (random)
+				random--;
+			if (!random)
+				return Current;
+			Current = Current->next;
+			if (!Current)
+				Current = SimplePositionNodeList;
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetNearest(Vector3 pos)
+	{
+		float LongestDistance = 0;
+		SimplePositionNode *TempObject = NULL;
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			float Temp = JmgUtility::SimpleDistance(Current->position,pos);
+			if (!TempObject || Temp < LongestDistance)
+			{
+				TempObject = Current;
+				LongestDistance = Temp;
+			}
+			Current = Current->next;
+		}
+		return TempObject;
+	}
+	SimplePositionNode *GetNearestFromGroup(int groupId,Vector3 pos)
+	{
+		float LongestDistance = 0;
+		SimplePositionNode *TempObject = NULL;
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			if (Current->value == groupId)
+			{
+				float Temp = JmgUtility::SimpleDistance(Current->position,pos);
+				if (!TempObject || Temp < LongestDistance)
+				{
+					TempObject = Current;
+					LongestDistance = Temp;
+				}
+			}
+			Current = Current->next;
+		}
+		return TempObject;
+	}
+	Vector3 GetNearestVector(Vector3 pos)
+	{
+		SimplePositionNode *TempObject = GetNearest(pos);
+		if (TempObject)
+			return TempObject->position;
+		return Vector3();
+	}
+	SimplePositionNode *GetNearestFlat(Vector3 pos)
+	{
+		float LongestDistance = 0;
+		SimplePositionNode *TempObject = NULL;
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			float Temp = JmgUtility::SimpleFlatDistance(Current->position,pos);
+			if (!TempObject || Temp < LongestDistance)
+			{
+				TempObject = Current;
+				LongestDistance = Temp;
+			}
+			Current = Current->next;
+		}
+		return TempObject;
+	}
+	SimplePositionNode *GetRandom(int minVal)
+	{
+		int repeatLimit = ObjectCount;
+		int random = Commands->Get_Random_Int(0,ObjectCount*2);
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			if (random && Current->value <= minVal)
+				random--;
+			if (!random && Current->value <= minVal)
+				return Current;
+			Current = Current->next;
+			if (!Current && repeatLimit)
+			{
+				repeatLimit--;
+				Current = SimplePositionNodeList;
+			}
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetRandomExcluding(SimplePositionNode *node)
+	{
+		int repeatLimit = ObjectCount;
+		int random = Commands->Get_Random_Int(0,ObjectCount*2);
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			if (random)
+				random--;
+			if (!random && node != Current)
+				return Current;
+			Current = Current->next;
+			if (!Current && repeatLimit)
+			{
+				repeatLimit--;
+				Current = SimplePositionNodeList;
+			}
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetRandomLowestValue()
+	{
+		int lowest = -1;
+		SimplePositionNode *current = SimplePositionNodeList;
+		while (current)
+		{
+			if (lowest == -1 || current->value <= lowest)
+				lowest = current->value;
+			current = current->next;
+		}
+		int random = Commands->Get_Random_Int(0,ObjectCount*2)+1;
+		int originalRandom = random;
+		current = SimplePositionNodeList;
+		while (current)
+		{
+			if (random && current->value == lowest)
+				random--;
+			if (!random)
+				return current;
+			current = current->next;
+			if (!current && originalRandom != random)
+				current = SimplePositionNodeList;
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetRandomOutsideOfRange(float range,Vector3 pos)
+	{
+		range *= range;
+		SimplePositionNode *current = SimplePositionNodeList;
+		int random = Commands->Get_Random_Int(0,ObjectCount*2)+1;
+		int originalRandom = random;
+		while (current)
+		{
+			if (JmgUtility::SimpleDistance(current->position,pos) > range && random)
+				random--;
+			if (!random)
+				return current;
+			current = current->next;
+			if (!current && originalRandom != random)
+				current = SimplePositionNodeList;
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetRandomOutsideOfRangeInGroup(int value,float range,Vector3 pos)
+	{
+		range *= range;
+		SimplePositionNode *current = SimplePositionNodeList;
+		int random = Commands->Get_Random_Int(0,ObjectCount*2)+1;
+		int originalRandom = random;
+		while (current)
+		{
+			if (current->value == value && JmgUtility::SimpleDistance(current->position,pos) > range && random)
+				random--;
+			if (current->value == value && !random)
+				return current;
+			current = current->next;
+			if (!current && originalRandom != random)
+				current = SimplePositionNodeList;
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetFurthestInGroup(int value,Vector3 pos)
+	{
+		float LongestDistance = 0;
+		SimplePositionNode *TempObject = NULL;
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			if (Current->value == value)
+			{
+				float Temp = JmgUtility::SimpleDistance(Current->position,pos);
+				if (!TempObject || Temp > LongestDistance)
+				{
+					TempObject = Current;
+					LongestDistance = Temp;
+				}
+			}
+			Current = Current->next;
+		}
+		return TempObject;
+	}
+	SimplePositionNode *GetRandomInsideOfRangeInGroup(int value,float range,Vector3 pos)
+	{
+		range *= range;
+		SimplePositionNode *current = SimplePositionNodeList;
+		int random = Commands->Get_Random_Int(0,ObjectCount*2)+1;
+		int originalRandom = random;
+		while (current)
+		{
+			if (current->value == value && JmgUtility::SimpleDistance(current->position,pos) <= range && random)
+				random--;
+			if (value && !random)
+				return current;
+			current = current->next;
+			if (!current && originalRandom != random)
+				current = SimplePositionNodeList;
+		}
+		return NULL;
+	}
+	SimplePositionNode *GetLowestValueFurthestFromSpot(Vector3 pos)
+	{
+		int lowest = -1;
+		SimplePositionNode *current = SimplePositionNodeList,*bestNode = NULL;
+		while (current)
+		{
+			if (lowest == -1 || current->value <= lowest)
+				lowest = current->value;
+			current = current->next;
+		}
+
+		current = SimplePositionNodeList;
+		float dist = 0;
+		while (current)
+		{
+			float tempDist = JmgUtility::SimpleDistance(pos,current->position);
+			if (!bestNode || tempDist > dist)
+			{
+				bestNode = current;
+				dist = tempDist;
+			}
+			current = current->next;
+		}
+		return bestNode;
+	}
+	SimplePositionNode *GetSpotNotVisibileFromSpot(Vector3 pos);
+	SimplePositionNode *GetNonVisibleSpotFromPlayers(int value);
+	SimplePositionNode *GetFurthestSpotFromPlayers(int value)
+	{
+		SimplePositionNode *current = SimplePositionNodeList,*bestNode = NULL;
+		float dist = 0;
+		while (current)
+		{
+			if (current->value == value)
+			{
+				GameObject *player = Commands->Get_A_Star(current->position);
+				if (!player)
+					continue;
+				float tempDist = JmgUtility::SimpleDistance(Commands->Get_Position(player),current->position);
+				if (!bestNode || tempDist > dist)
+				{
+					bestNode = current;
+					dist = tempDist;
+				}
+			}
+			current = current->next;
+		}
+		return bestNode;
+	}
+	void DecreaseValue()
+	{
+		SimplePositionNode *Current = SimplePositionNodeList;
+		while (Current)
+		{
+			if (Current->value)
+				Current->value--;
+			Current = Current->next;
+		}
+	}
+};
 /*!
 * \brief An object that will have its position synced by JMG_Utility_Sync_System_Controller
 * \author jgray
@@ -1811,7 +2274,9 @@ class JMG_Utility_Dynamic_Clock_Control : public ScriptImpClass {
 };
 
 class JMG_Utility_Dynamic_Clock_Object : public ScriptImpClass {
+	int animSynced[128];
 	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
 	void Destroyed(GameObject *obj);
 };
 
@@ -2587,6 +3052,7 @@ class JMG_Utility_AI_Aggressive_Attack_Spot_Point : public ScriptImpClass
 	AggressiveAttackSpotSystem::AggressiveAttackSpotNode *node;
 	void Created(GameObject *obj);
 	void Timer_Expired(GameObject *obj,int number);
+	void Killed(GameObject *obj,GameObject *killer);
 	void Destroyed(GameObject *obj);
 public:
 	JMG_Utility_AI_Aggressive_Attack_Spot_Point()
@@ -3067,6 +3533,8 @@ class JMG_Utility_Scale_Damage_Square_By_Player_Count : public ScriptImpClass
 * \ArmorPerPlayer - Amount of armor per player to regen (amount*player count)
 * \Rate - Speed to regen
 * \DamageDelay - Amount of time regen must wait to start again after taking damage
+* \ScaleHealthPerHeal - With each heal this value is added to HealthAmount, if the value goes negative it stops healing (value is multiplied by 0.00001)
+* \ScaleArmorPerHeal - With each heal this value is added to ArmorAmount, if the value goes negative it stops healing (value is multiplied by 0.00001)
 * \author jgray
 * \ingroup JmgUtility
 */
@@ -3081,9 +3549,12 @@ class JMG_Utility_Regen_HitPoints : public ScriptImpClass
 	float rate;
 	float damageDelay;
 	bool enabled;
+	float scaleHealthPerHeal;
+	float scaleArmorPerHeal;
 	void Created(GameObject *obj);
 	void Timer_Expired(GameObject *obj,int number);
 	void Damaged(GameObject *obj,GameObject *damager,float damage);
+	float ScaleValue(float value,float scale);
 };
 
 /*!
@@ -3495,7 +3966,6 @@ class JMG_Utility_Zone_Teleport_To_Random_Wander_Point : public ScriptImpClass {
 	bool Grab_Teleport_Spot(GameObject *enter,int attempts);
 };
 
-
 /*!
 * \brief Used by JMG_Utility_Zone_Teleport_To_Random_Wander_Point
 * \author jgray
@@ -3551,6 +4021,7 @@ class JMG_Utility_Zone_Send_Custom_Enter : public ScriptImpClass {
 * \PresetName - Name of the preset to hunt down and kill
 * \Position - Position to search near
 * \MaxDistance - Max distance to scan, 0 = infinite
+* \TriggerOnce - If non-zero the script can only fire once then removes itself
 * \author jgray
 * \ingroup JmgUtility
 */
@@ -4999,6 +5470,7 @@ class JMG_Utility_AI_Follow_Player_On_Poke : public ScriptImpClass {
 	void Damaged(GameObject *obj,GameObject *damager,float damage);
 	void Poked(GameObject *obj, GameObject *poker);
 	void Action_Complete(GameObject *obj,int action_id,ActionCompleteReason reason);
+	void Killed(GameObject *obj, GameObject *killer);
 	void Destroyed(GameObject *obj);
 	void Detach(GameObject *obj);
 	void AttackTarget(GameObject *obj,GameObject *follow,GameObject *target,Vector3 location,float speed,float distance);
@@ -8029,4 +8501,1828 @@ class JMG_Utility_Player_Seen_Send_Custom : public ScriptImpClass {
 	bool triggerOnce;
 	void Created(GameObject *obj);
 	void Timer_Expired(GameObject *obj,int number);
+};
+/*!
+* \brief Plays an animation on the object that enters the zone, the object is also attached to another object (on the "attach" bone) which can be animated to do relocations
+* \PresetName - Preset required to trigger the script
+* \Animation - Animation to play on the object that enters 
+* \AttachedModel - Model to use for the object the enterer is attached to
+* \AttachedAnimation - Animation to play to relocate the entering object
+* \Custom - Custom to send to self on animation completion
+* \Param - Param to send to self on animation completion 
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Enter_Play_Animation_And_Relocate : public ScriptImpClass {
+	char animation[32];
+	char attachedModel[16];
+	char attachedAnimation[32];
+	char presetName[128];
+	float zoneRotation;
+	bool centerToZone;
+	int custom;
+	int customParam;
+	void Created(GameObject *obj);
+	void Entered(GameObject *obj,GameObject *enterer);
+};
+
+/*!
+* \brief Attached by JMG_Utility_Enter_Play_Animation_And_Relocate, not designed to be used directly
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Enter_Play_Animation_And_Relocate_Attached : public ScriptImpClass {
+	int holderId;
+	Vector3 offset;
+	void Created(GameObject *obj);
+	void Animation_Complete(GameObject *obj,const char *anim);
+	void Destroyed(GameObject *obj);
+};
+
+/*!
+* \brief Destroys the closest preset to the attached object (works with powerups and other "dumb" objects)
+* \Custom - Custom to trigger the script
+* \PresetName - Name of the preset to hunt down and kill
+* \MaxDistance - Max distance to scan, 0 = infinite
+* \TriggerOnce - If non-zero the script can only fire once then removes itself
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Destroy_Closest_Object_To_Self : public ScriptImpClass {
+	int custom;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Applys damage to the closest preset to the attached object (works with powerups and other "dumb" objects, sender is the damager)
+* \Custom - Custom to trigger the script
+* \PresetName - Name of the preset to hunt down and kill
+* \Warhead - Warhead to use
+* \DamageAmount - Amount of damage to apply
+* \MaxDistance - Max distance to scan, 0 = infinite
+* \TriggerOnce - If non-zero the script can only fire once then removes itself
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Apply_Damage_Closest_Object_To_Self : public ScriptImpClass {
+	int custom;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+
+/*!
+* \brief Applys damage to the closest preset to the attached object (works with powerups and other "dumb" objects, sender is the damager)
+* \Custom - Custom to trigger the script
+* \ID - ID of the building to restore, 0 restores attached, -1 restores sender
+* \TriggerOnce - Only allows this script to fire once
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Restore_Building : public ScriptImpClass {
+	int id;
+	int custom;
+	bool triggerOnce;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Basically exactly the same as JMG_Utility_Timer_Custom but with a random delay
+* \Time - delay to send the custom
+* \Random - Amount to add or subtract on each run of the timer from the base time
+* \ID - Id of the object to send the custom to, 0 sends to itself
+* \Message - Custom to send
+* \Param - parameter to send with the custom
+* \Repeat - 1 to make it trigger again
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Timer_Custom_Random : public ScriptImpClass {
+	int id;
+	int message;
+	int param;
+	bool repeat;
+	float time;
+	float random;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+};
+
+class DynamicAttachScript
+{
+public:
+	class DynamicAttachScriptParams
+	{
+	public:
+		struct DynamicAttachScriptParamNode
+		{
+			int index;
+			char param[512];
+			struct DynamicAttachScriptParamNode *next;
+			DynamicAttachScriptParamNode(int index,const char *param)
+			{
+				this->index = index;
+				sprintf(this->param,"%s",param);
+				next = NULL;
+			}
+		};
+	private:
+		DynamicAttachScriptParamNode *DynamicAttachScriptParamNodeList;
+	public:
+		int objectCount;
+		DynamicAttachScriptParams()
+		{
+			objectCount = 0;
+			DynamicAttachScriptParamNodeList = NULL;
+		}
+		DynamicAttachScriptParamNode *AddOrUpdateParam(int index,const char *param)
+		{
+			DynamicAttachScriptParamNode *current = DynamicAttachScriptParamNodeList;
+			if (!DynamicAttachScriptParamNodeList)
+			{
+				objectCount++;
+				return (DynamicAttachScriptParamNodeList = new DynamicAttachScriptParamNode(index,param));
+			}
+			while (current)
+			{
+				if (current->index == index)
+				{
+					sprintf(current->param,"%s",param);
+					return current;
+				}
+				if (!current->next)
+				{
+					objectCount++;
+					return (current->next = new DynamicAttachScriptParamNode(index,param));
+				}
+				current = current->next;
+			}
+			return NULL;
+		};
+		DynamicAttachScriptParamNode *FindParam(int index)
+		{
+			DynamicAttachScriptParamNode *current = DynamicAttachScriptParamNodeList;
+			while (current)
+			{
+				if (current->index == index)
+					return current;
+				current = current->next;
+			}
+			return NULL;
+		};
+		void EmptyList()
+		{
+			objectCount = 0;
+			DynamicAttachScriptParamNode *temp = DynamicAttachScriptParamNodeList,*die;
+			while (temp)
+			{
+				die = temp;
+				temp = temp->next;
+				delete die;
+			}
+			DynamicAttachScriptParamNodeList = NULL;
+		}
+	};
+	struct DynamicAttachScriptNode
+	{
+		int scriptId;
+		char scriptName[512];
+		DynamicAttachScriptParams dynamicAttachScriptParams;
+		struct DynamicAttachScriptNode *next;
+		DynamicAttachScriptNode(int scriptId,const char *scriptName)
+		{
+			this->scriptId = scriptId;
+			sprintf(this->scriptName,"%s",scriptName);
+			next = NULL;
+		}
+	};
+private:
+	DynamicAttachScriptNode *DynamicAttachScriptNodeList;
+public:
+	DynamicAttachScript()
+	{
+		DynamicAttachScriptNodeList = NULL;
+	}
+	DynamicAttachScriptNode *AddDynamicScript(int scriptId,const char *scriptName)
+	{
+		DynamicAttachScriptNode *current = DynamicAttachScriptNodeList;
+		if (!DynamicAttachScriptNodeList)
+		{
+			DynamicAttachScriptNodeList = new DynamicAttachScriptNode(scriptId,scriptName);
+			return DynamicAttachScriptNodeList;
+		}
+		while (current)
+		{
+			if (current->scriptId == scriptId)
+			{
+				char errorMsg[220];
+				sprintf(errorMsg,"msg JMG_Utility_Dynamic_Script_Add_Parameter ERROR: ScriptID %d already exists!",scriptId);
+				Console_Input(errorMsg);
+				return current;
+			}
+			if (!current->next)
+			{
+				current->next = new DynamicAttachScriptNode(scriptId,scriptName);
+				return current->next;
+			}
+			current = current->next;
+		}
+		return NULL;
+	};
+	DynamicAttachScriptNode *FindDynamicScript(int scriptId)
+	{
+		DynamicAttachScriptNode *current = DynamicAttachScriptNodeList;
+		while (current)
+		{
+			if (current->scriptId == scriptId)
+				return current;
+			current = current->next;
+		}
+		char errorMsg[220];
+		sprintf(errorMsg,"msg JMG_Utility_Dynamic_Script_Add_Parameter ERROR: ScriptID %d doesn't exist!",scriptId);
+		Console_Input(errorMsg);
+		return NULL;
+	};
+	void AddParamToScript(int scriptId,int index,const char *param)
+	{
+		DynamicAttachScriptNode *current = DynamicAttachScriptNodeList;
+		while (current)
+		{
+			if (current->scriptId == scriptId)
+			{
+				current->dynamicAttachScriptParams.AddOrUpdateParam(index,param);
+				return;
+			}
+		}
+		char errorMsg[220];
+		sprintf(errorMsg,"msg JMG_Utility_Dynamic_Script_Add_Parameter ERROR: ScriptID %d doesn't exist!",scriptId);
+		Console_Input(errorMsg);
+	}
+	void EmptyList()
+	{
+		DynamicAttachScriptNode *temp = DynamicAttachScriptNodeList,*die;
+		while (temp)
+		{
+			die = temp;
+			temp = temp->next;
+			die->dynamicAttachScriptParams.EmptyList();
+			delete die;
+		}
+		DynamicAttachScriptNodeList = NULL;
+	}
+};
+
+/*!
+* \brief Used for cleanup after the level completes, place on an object that will exist the whole level
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Dynamic_Script_Controller : public ScriptImpClass {
+	void Destroyed(GameObject *obj);
+public:
+	static DynamicAttachScript dynamicAttachScript;
+};
+
+/*!
+* \brief Setup a dynamic script identity
+* \ScriptID - ID that this script is stored under, used to look up the definition when attaching the script to an object or giving it params
+* \ScriptName - Name of the script that will be attached to the object
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Dynamic_Script_Definition : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Adds (or updates) a parameter on the specified script ID on create (there is a 0.1 second delay after script has been created, this is to make sure it happens after the script definition is created)
+* \ScriptID - ID that this script is stored under, used to look up the definition when attaching the script to an object or giving it params
+* \Index - Index of the parameter, if the index matches the index of a parameter on the script the param will be updated
+* \Param - Parameter for the index
+* \Delim - Use this in place of ,'s (that way you can have multiple parameters under one parameter as a time saver)
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Dynamic_Script_Created_Add_Update_Parameter : public ScriptImpClass {
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+};
+
+/*!
+* \brief Same as JMG_Utility_Dynamic_Script_Created_Add_Update_Parameter but triggers on custom
+* \Custom - Custom to trigger the add/update on
+* \ScriptID - ID that this script is stored under, used to look up the definition when attaching the script to an object or giving it params
+* \Index - Index of the parameter, if the index matches the index of a parameter on the script the param will be updated
+* \Param - Parameter for the index
+* \Delim - Use this in place of ,'s (that way you can have multiple parameters under one parameter as a time saver)
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Dynamic_Script_Custom_Add_Update_Parameter : public ScriptImpClass {
+	int custom;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Attaches the script specified by ID and the currently defined parameters
+* \Custom - Custom to trigger the add/update on
+* \ScriptID - ID that this script is stored under, used to look up the definition when attaching the script to an object or giving it params
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Dynamic_Script_Custom_Attach : public ScriptImpClass {
+	int custom;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Works just like JMG_Utility_Objective_System_Objective_Update_Custom except sends a custom if the objective being added doesn't exist yet
+* \Custom - custom to trigger on
+* \NewObjectiveID - ID of the new objective to add
+* \NewObjectiveStringID - Strings.tbl id for the objective message
+* \ObjectiveMarkerObjectID - ID of the object where the marker should be displayed (-1 sets this object that picked it up as the marker)
+* \CompleteObjectiveID - Objective to complete when this is trigger
+* \Delay - Delay for Objective before adding the new one
+* \NewObjectivePriority - Priority of the new objective {Undefined=-1,Unknown = 0,Primary = 1,Secondary = 2,Tertiary = 3,Quaternary = 4,Quinary = 5,Senary = 6,Septenary = 7,Octonary = 8,Nonary = 9,Denary = 10,Bonus = 11}
+* \ID - ID to send to, 0 sends to self, -1 sends to sender
+* \SendCustom - custom to send
+* \Param - param to send (-1 sends the param that was received)
+* \CustomDelay - How long to delay the send
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Objective_System_Custom_Add_Objective_Send_Custom : public ScriptImpClass {
+	int custom;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Sends a custom on a custom if the specified objective is matching the defined status
+* \Custom - Custom to watch for
+* \ObjectiveID - Objective that must be pending in order to send the custom
+* \Status - Status objective must be in (Removed=-2 NotDefined=-1 Pending=0 Accomplished=1 Failed=2 Hidden=3
+* \ID - ID to send to, 0 sends to self, -1 sends to sender
+* \SendCustom - custom to send
+* \Param - param to send (-1 sends the param that was received)
+* \Delay - delay to add
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Objective_System_Custom_Send_Custom_Status : public ScriptImpClass {
+	int objectiveId;
+	int status;
+	int recieveMessage;
+	int id;
+	int custom;
+	int Param;
+	float delay;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Same as JMG_Utility_Objective_System_Custom_Send_Custom_Pending but only sends if the objective is removed or not defined
+* \Custom - Custom to watch for
+* \ObjectiveID - Objective that must be removed or not defined in order to send the custom
+* \ID - ID to send to, 0 sends to self, -1 sends to sender
+* \SendCustom - custom to send
+* \Param - param to send (-1 sends the param that was received)
+* \Delay - delay to add
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Objective_System_Custom_Send_Custom_Does_Not_Exist : public ScriptImpClass {
+	int objectiveId;
+	int recieveMessage;
+	int id;
+	int custom;
+	int Param;
+	float delay;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Chooses an non-existant or removed objective from the provided list to send as a custom
+* \Custom - Custom to watch for
+* \ObjectiveID0-9 - Objective choices 0 - 9, -999 means not a choice
+* \ID - ID to send to, 0 sends to self, -1 sends to sender
+* \Param - param to send (-1 sends the param that was received)
+* \Delay - delay to add
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Objective_System_Send_Random_Objective_As_Custom : public ScriptImpClass {
+	int objectiveId[10];
+	int recieveMessage;
+	int id;
+	int Param;
+	float delay;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Sends a custom on a custom if the specified objective is not matching the defined status
+* \Custom - Custom to watch for
+* \ObjectiveID - Objective that must be pending in order to send the custom
+* \Status - Status objective must be in (Removed=-2 NotDefined=-1 Pending=0 Accomplished=1 Failed=2 Hidden=3
+* \ID - ID to send to, 0 sends to self, -1 sends to sender
+* \SendCustom - custom to send
+* \Param - param to send (-1 sends the param that was received)
+* \Delay - delay to add
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Objective_System_Custom_Send_Custom_Not_Status : public ScriptImpClass {
+	int objectiveId;
+	int status;
+	int recieveMessage;
+	int id;
+	int custom;
+	int Param;
+	float delay;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+class GlobalKeycardSystem
+{
+private:
+	struct GlobalKeycardNode
+	{
+		int keycardId;
+		int groupId;
+		struct GlobalKeycardNode *next;
+		GlobalKeycardNode(int keycardId,int groupId)
+		{
+			this->keycardId = keycardId;
+			this->groupId = groupId;
+			this->next = NULL;
+		}
+	};
+	GlobalKeycardNode *globalKeycardNodeList;
+	void AddKeycardToPlayerObjects(int keycardId,int groupId);
+	void RemoveKeycardFromPlayerObjects(int keycardId,int groupId);
+public:
+	GlobalKeycardSystem()
+	{
+		globalKeycardNodeList = NULL;
+	}
+	GlobalKeycardNode *AddKeycard(int keycardId,int groupId)
+	{
+		GlobalKeycardNode *current = globalKeycardNodeList;
+		if (!globalKeycardNodeList)
+		{
+			AddKeycardToPlayerObjects(keycardId,groupId);
+			return (globalKeycardNodeList = new GlobalKeycardNode(keycardId,groupId));
+		}
+		while (current)
+		{
+			if (current->keycardId == keycardId && current->groupId == groupId)
+				return current;
+			if (!current->keycardId)
+			{
+				AddKeycardToPlayerObjects(keycardId,groupId);
+				current->keycardId = keycardId;
+				return current;
+			}
+			if (!current->next)
+			{
+				AddKeycardToPlayerObjects(keycardId,groupId);
+				current->next = new GlobalKeycardNode(keycardId,groupId);
+				return current;
+			}
+			current = current->next;
+		}
+		return NULL;
+	}
+	void RemoveKeycard(int keycardId,int groupId)
+	{
+		if (!globalKeycardNodeList)
+			return;
+		GlobalKeycardNode *current = globalKeycardNodeList;
+		while (current)
+		{
+			if (current->keycardId == keycardId && current->groupId == groupId)
+			{
+				RemoveKeycardFromPlayerObjects(keycardId,groupId);
+				current->keycardId = 0;
+				break;
+			}
+			current = current->next;
+		}
+	}
+	void emptyList()
+	{
+		GlobalKeycardNode *temp = globalKeycardNodeList,*die;
+		while (temp)
+		{
+			RemoveKeycardFromPlayerObjects(temp->keycardId,temp->groupId);
+			die = temp;
+			temp = temp->next;
+			delete die;
+		}
+		globalKeycardNodeList = NULL;
+	}
+	void GrantKeycards(GameObject *obj,int groupId)
+	{
+		GlobalKeycardNode *current = globalKeycardNodeList;
+		while (current)
+		{
+			if (current->keycardId && current->groupId == groupId)
+				Commands->Grant_Key(obj,current->keycardId,true);
+			current = current->next;
+		}
+	}
+};
+
+/*!
+* \brief Controller for the keycard system (Grants Renegade keycards to soldiers that have the soldier scirpt on them (probably works with vehicles but havne't tested how keycards and vehicles interact)
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Keycard_System_Controller : public ScriptImpClass {
+	void Destroyed(GameObject *obj);
+};
+
+/*!
+* \brief Adds a keycard to the list of keycards to be granted to any global keycard soldier (also grants to any soldier already on the field)
+* \KeycardID - ID of the keycard to add
+* \GroupID - ID of the group this keycard is for
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Keycard_System_Created_Add_Keycard : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Adds a keycard to the list of keycards to be granted to any global keycard soldier (also grants to any soldier already on the field)
+* \Custom - Custom needed to trigger script
+* \KeycardID - ID of the keycard to add
+* \GroupID - ID of the group this keycard is for
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Keycard_System_Custom_Add_Keycard : public ScriptImpClass {
+	int custom;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Removes a keycard to the list of keycards to be granted to any global keycard soldier (also removes from any soldier already on the field)
+* \Custom - Custom needed to trigger script
+* \KeycardID - ID of the keycard to removes
+* \GroupID - ID of the group this keycard is for
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Keycard_System_Custom_Remove_Keycard : public ScriptImpClass {
+	int custom;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief The attached soldier will get and lose keycards whenever the global keycard system is updated or on spawn, only attach one of these per soldier
+* \GroupID - Group that this soldier belongs to for granting keycards
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Keycard_System_Soldier : public ScriptImpClass {
+	void Created(GameObject *obj);
+public:
+	int groupId;
+};
+
+/*!
+* \brief Sends a custom when the zone becomes occupied by a player and then sends a custom again when its vacant 
+* \OccupiedID - ID of the object to send to, -1 sends to the player that triggered, 0 sends to itself
+* \OccupiedCustom - Custom to send when occupied 
+* \OccupiedParam - Param to send when occupied
+* \OccupiedDelay - Delay for the occupied custom
+* \VacantID - ID of the object to send to, -1 sends to the player that triggered, 0 sends to itself
+* \VacantCustom - Custom to send when vacant
+* \VacantParam - Param to send when vacant
+* \VacantDelay - Delay for the vacant custom
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Zone_Send_Custom_On_Player_Occupation_Change : public ScriptImpClass {
+	int occupiedId;
+	int occupiedCustom;
+	int occupiedParam;
+	float occupiedDelay;
+	int vacantId;
+	int vacantCustom;
+	int vacantParam;
+	float vacantDelay;
+	bool inZone[128];
+	int count;
+	void Created(GameObject *obj);
+	void Entered(GameObject *obj,GameObject *enterer);
+public:
+	JMG_Utility_Zone_Send_Custom_On_Player_Occupation_Change()
+	{
+		for (int x = 0;x < 128;x++)
+			inZone[x] = false;
+		count = 0;
+	}
+	void Exited(GameObject *obj,GameObject *exiter);
+};
+
+/*!
+* \brief Attached by JMG_Utility_Zone_Send_Custom_On_Player_Occupation_Change
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Zone_Send_Custom_On_Player_Occupation_Change_Attached : public ScriptImpClass {
+	void Destroyed(GameObject *obj);
+};
+
+/*!
+* \brief Controls setup and cleanup for the Silent countdown
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Silent_Countdown_Controller : public ScriptImpClass {
+public:
+	struct SendCustomOnSecondNode
+	{
+		int triggerSecond;
+		int id;
+		int custom;
+		int param;
+		float delay;
+		struct SendCustomOnSecondNode *next;
+		SendCustomOnSecondNode(int triggerSecond,int id,int custom,int param,float delay)
+		{
+			this->triggerSecond = triggerSecond;
+			this->id = id;
+			this->custom = custom;
+			this->param = param;
+			this->delay = delay;
+			this->next = NULL;
+		}
+	};
+	struct SendCustomIdNode
+	{
+		int countdownId;
+		struct SendCustomOnSecondNode *nodes;
+		struct SendCustomIdNode *next;
+		SendCustomIdNode(int countdownId)
+		{
+			this->countdownId = countdownId;
+			this->nodes = NULL;
+			this->next = NULL;
+		}
+		void Empty()
+		{
+			SendCustomOnSecondNode *temp = nodes,*die;
+			while (temp)
+			{
+				die = temp;
+				temp = temp->next;
+				delete die;
+			}
+			nodes = NULL;
+		}
+	};
+	static SendCustomIdNode *sendCustomIdNodeList;
+	static SendCustomIdNode *FindOrCreateCountdownId(int countdownId)
+	{
+		SendCustomIdNode *current = sendCustomIdNodeList;
+		if (!sendCustomIdNodeList)
+			return (sendCustomIdNodeList = new SendCustomIdNode(countdownId));
+		while (current)
+		{
+			if (current->countdownId == countdownId)
+				return current;
+			if (!current->next)
+				return (current->next = new SendCustomIdNode(countdownId));
+			current = current->next;
+		}
+		return NULL;
+	}
+private:
+	void Created(GameObject *obj);
+	void Destroyed(GameObject *obj);
+public:
+	static bool controllerPlaced;
+	JMG_Utility_Silent_Countdown_Controller()
+	{
+		controllerPlaced = false;
+	}
+	static void AddSecondNode(int countdownId,int triggerSecond,int id,int custom,int param,float delay)
+	{
+		SendCustomIdNode *baseNode = FindOrCreateCountdownId(countdownId);
+		SendCustomOnSecondNode *current = baseNode->nodes;
+		if (!baseNode->nodes)
+			baseNode->nodes = new SendCustomOnSecondNode(triggerSecond,id,custom,param,delay);
+		while (current)
+		{
+			if (triggerSecond == current->triggerSecond && id == current->id && custom == current->custom && param == current->param)
+			{
+				Console_Input("msg ERROR: A custom for this trigger second already exists!");
+				return;
+			}
+			if (!current->next)
+			{
+				current->next = new SendCustomOnSecondNode(triggerSecond,id,custom,param,delay);
+				return;
+			}
+			current = current->next;
+		}
+	}
+	static void NodeSendCustom(GameObject *obj,SendCustomIdNode *countdownNode,int second)
+	{
+		if (!countdownNode)
+			return;
+		SendCustomOnSecondNode *current = countdownNode->nodes;
+		while (current)
+		{
+			if (current->triggerSecond == second)
+				Commands->Send_Custom_Event(obj,Commands->Find_Object(current->id),current->custom,current->param,current->delay);
+			current = current->next;
+		}
+	}
+	void EmptyList()
+	{
+		controllerPlaced = false;
+		SendCustomIdNode *temp = sendCustomIdNodeList,*die;
+		while (temp)
+		{
+			temp->Empty();
+			die = temp;
+			temp = temp->next;
+			delete die;
+		}
+		sendCustomIdNodeList = NULL;
+	}
+};
+/*!
+* \brief Sends a custom when the time on JMG_Utility_Silent_Countdown matches the defined seconds on this script
+* \TimerID - The ID of the timer
+* \Time - How long in seconds the timer counts down
+* \StartCustom - Custom to start or resume the countdown
+* \PauseCustom - Custom to pause the countdown
+* \CancelCustom - Resets the countdown back to its original time and pauses it
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Silent_Countdown_Timer : public ScriptImpClass {
+	bool paused;
+	int startCustom;
+	int pausedCustom;
+	int cancelCustom;
+	int time;
+	JMG_Utility_Silent_Countdown_Controller::SendCustomIdNode *sendCustomIdNode;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Sends a custom when the time on JMG_Utility_Silent_Countdown matches the defined seconds on this script
+* \TimerID - ID of the timer this belongs to
+* \TriggerTime - Time in which to send the custom
+* \ID - ID to send the custom to, if 0 it sends it to the object this script is attached too
+* \Custom - Custom to send
+* \Param - Param to send
+* \Delay - Delay to wait before sending the message
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Silent_Countdown_Send_Custom : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Teleports the object that enters the zone to a random wander point furthest from a boss object
+* \WanderingAIGroupID - Group of points to teleport to
+* \SafeTeleportDistance - How far can infantry be moved if the spot is blocked
+* \ChangeGroupIDCustom - Changes the wander point group id to a new one, uses the parameter on the custom sent in
+* \PlayerType - Playertype the zone triggers for
+* \RetryOnFailure - If this is true a script will be attached that will continue to try to teleport the player until successful (Warning: Turning this on hides error messages)
+* \AiOnly - Only trigger for AI
+* \FaceBoss - Should the enter face the boss object after passing through the teleport?
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Zone_Teleport_To_Random_WP_Boss : public ScriptImpClass {
+	bool faceBoss;
+	bool retryOnFailure;
+	int playerType;
+	float safeTeleportDistance;
+	int wanderPointGroup;
+	int changeGroupIDCustom;
+	bool aiOnly;
+	void Created(GameObject *obj);
+	void Entered(GameObject *obj,GameObject *enterer);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	bool Get_A_Defense_Point(Vector3 *position,float *facing,GameObject *boss);
+	bool Grab_Teleport_Spot(GameObject *enter,int attempts);
+public:
+	static int BossObjectId;
+};
+
+/*!
+* \brief Marks this object as a boss object for the JMG_Utility_Zone_Teleport_To_Random_WP_Boss script, last object made is the one tracked
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Zone_Teleport_To_Random_WP_Boss_Object : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Sets the speed of the attached soldier on Custom
+* \Custom - Custom needed to trigger script
+* \Speed - Movement speed of the soldier
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Set_Soldier_Speed : public ScriptImpClass {
+	int custom;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Controller for the control point system, needed if control points are on the map (NeutralPlayer is -2)
+* \NeutralTeamName - Name of the neutral state of the CP's (normally you'll never see this)
+* \NeutralRadarBlipColor - This sets the color of the control point's radar marker (NOD = 0,GDI = 1,NEUTRAL = 2,MUTANT = 3,RENEGADE = 4,PRIMARY_OBJECTIVE = 5,SECONDARY_OBJECTIVE = 6,TERTIARY_OBJECTIVE = 7)
+* \NeutralPlayerType - Player type to change the CP's to when owned by neutral
+* \NeutralDefaultPointModel - W3D to use for the CP when neutral owns a CP
+* \NeutralDefaultAnimation - Animation to use when neutral owns a CP
+* \NeutralAnimationLength - Length of the animation
+* \NeutralCaptureSound - Capture sound to play when neutral captures it (normally won't ever see this)
+* \NeutralLostSound - Sound to play when neutral loses a CP
+* \NeutralLockedModel - Model to display if the CP is locked while controlled by neutral
+* \NeutralLockedAnim - Animation for the locked state
+* \NeutralLockedAnimLength - Length of the animation
+* \NeutralDefenseMultiplier - Effect a neutral soldier has on an owned CP
+* \NeutralCaptureMultiplier - Effect a neutral solider has on an enemy CP
+* \NeutralUnoccupiedMultiplier - How neutral is modified when no soldiers are guarding it
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Control_Point_Controller : public ScriptImpClass {
+public:
+	struct ControlPointTeamData
+	{
+		int teamId;
+		char teamName[128];
+		int playerType;
+		int radarBlipColor;
+		char pointModel[16];
+		char defaultAnimation[32];
+		float animationLength;
+		int defenseMultiplier;
+		int captureMultiplier;
+		int unoccupiedMultiplier;
+		char lostSound[128];
+		char captureSound[128];
+		char lockedModel[16];
+		char lockedAnim[32];
+		float lockedAnimLen;
+		ControlPointTeamData(int teamId,const char *teamName,int playerType,int radarBlipColor,const char *pointModel,const char *defaultAnimation,float animationLength,const char *captureSound,const char *lostSound,const char *lockedModel,const char *lockedAnim,float lockedAnimLen,int defenseMultiplier,int captureMultiplier,int unoccupiedMultiplier)
+		{
+			this->teamId = teamId;
+			sprintf(this->teamName,"%s",teamName);
+			this->playerType = playerType;
+			this->radarBlipColor = radarBlipColor;
+			sprintf(this->pointModel,"%s",pointModel);
+			sprintf(this->defaultAnimation,"%s",defaultAnimation);
+			this->animationLength = animationLength;
+			this->defenseMultiplier = defenseMultiplier;
+			this->captureMultiplier = captureMultiplier;
+			this->unoccupiedMultiplier = unoccupiedMultiplier;
+			sprintf(this->captureSound,"%s",captureSound);
+			sprintf(this->lostSound,"%s",lostSound);
+			sprintf(this->lockedModel,"%s",lockedModel);
+			sprintf(this->lockedAnim,"%s",lockedAnim);
+			this->lockedAnimLen = lockedAnimLen;
+		}
+	};
+	static SList<ControlPointTeamData> controlPointTeamData;
+	static bool controllerPlaced;
+private:
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+	void Destroyed(GameObject *obj);
+public:
+	JMG_Utility_Control_Point_Controller()
+	{
+		controllerPlaced = true;
+		allSetupComplete = false;
+	}
+	static SList<GameObject> controlPoints;
+	static SList<GameObject> wanderPoints;
+	static bool allSetupComplete;
+};
+
+/*!
+* \brief Adds a team's settings to the game, needs one per team
+* \TeamID - ID of the team, this is used to index the units on the map
+* \TeamName - Name of the team, this is used for capture messages and loss messages
+* \PlayerType - This is the team the CP will be set to when its owned by this team
+* \RadarBlipColor - This sets the color of the control point's radar marker (NOD = 0,GDI = 1,NEUTRAL = 2,MUTANT = 3,RENEGADE = 4,PRIMARY_OBJECTIVE = 5,SECONDARY_OBJECTIVE = 6,TERTIARY_OBJECTIVE = 7)
+* \PointModel - W3D to use for the CP when owned by this team
+* \Animation - Animation to use when owned by this team
+* \AnimationLength - Length of the animation
+* \CaptureSound - Capture sound to play when a CP is captured by this team
+* \LostSound - Sound to play when this team loses a CP
+* \LockedModel - Model to display if the CP is locked
+* \LockedAnim - Animation for the locked state
+* \LockedAnimLength - Length of the animation
+* \DefenseMultiplier - Effect this team's soldiers has on controlled CP's
+* \CaptureMultiplier - Effect this team's soldiers has on an enemy CP
+* \UnoccupiedMultiplier - Rate at which owned CP's regenerate when no one is around
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Control_Point_Team_Setting : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Sets this control point's default settings
+* \ControlPointName - Name displayed when CP is lost or captured
+* \ControllingTeamID - Owning team when game starts
+* \MaxCapturePoints - How much 'health' the control point has, a normal unit will take 4 points a second when in range
+* \ControlDistance - Max distance units can control this point
+* \ControlHeight[Min|Max] - If non-zero it will limit the vertical scan of the sphere used for detecting units
+* \ZoneID - If specified a script zone will be used as the zone instead of distance from the control point
+* \CaptureScore - Score to grant units in range when captured (divided amongst all units in range)
+* \NeutralizeScore - Score to grant units in range when lost (divided amongst all units in range)
+* \ControlGroupID - Used for organization but can be accessed by external scripts
+* \StartsLocked - Whether it should start with the locked state (no one can capture it)
+* \LockCustom - Custom Message that will lock the CP if the param is 1, or unlock if 0
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Control_Point : public ScriptImpClass {
+public:
+	struct ControlPointSettingOverride
+	{
+		int teamId;
+		int id;
+		int captureCustom;
+		int lostCustom;
+		char pointModelOverride[16];
+		char animOverride[32];
+		float animationLength;
+		char lockedPointModelOverride[16];
+		char lockedAnimOverride[32];
+		float lockedAnimationLength;
+		ControlPointSettingOverride(int teamId,int id,int captureCustom,int lostCustom,const char *pointModelOverride,const char *animOverride,float animationLength,const char *lockedPointModelOverride,const char *lockedAnimOverride,float lockedAnimationLength)
+		{
+			this->teamId = teamId;
+			this->id = id;
+			this->captureCustom = captureCustom;
+			this->lostCustom = lostCustom;
+			sprintf(this->pointModelOverride,"%s",pointModelOverride);
+			sprintf(this->animOverride,"%s",animOverride);
+			this->animationLength = animationLength;
+			sprintf(this->lockedPointModelOverride,"%s",lockedPointModelOverride);
+			sprintf(this->lockedAnimOverride,"%s",lockedAnimOverride);
+			this->lockedAnimationLength = lockedAnimationLength;
+		}
+	};
+	SList<ControlPointSettingOverride> controlPointSettingOverride;
+private:
+	float captureScore;
+	float neutralizeScore;
+	int currerntCapturePoints;
+	int maxCapturePoints;
+	float currentFrame;
+	float controlDistance;
+	bool occupied;
+	bool specialLocked;
+	int lockCustom;
+	int radarBipType;
+	bool wasLocked;
+	Vector3 controlHeightMinMax;
+	int zoneId;
+	ControlPointSettingOverride *controllingTeamOverride;
+	ControlPointSettingOverride *lastTeamOverride;
+	JMG_Utility_Control_Point_Controller::ControlPointTeamData *controllingTeam;
+	JMG_Utility_Control_Point_Controller::ControlPointTeamData *neutralTeam;
+	JMG_Utility_Control_Point_Controller::ControlPointTeamData *lastTeam;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	void Timer_Expired(GameObject *obj,int number);
+	void Destroyed(GameObject *obj);
+	void SetAnimation(GameObject *obj,const char *anim,float length);
+	void AddUpCpPoints(GameObject *obj,JMG_Utility_Control_Point_Controller::ControlPointTeamData *unitTeamData,int multiplier);
+	void JMG_Utility_Control_Point::Final_CP_Calculation(GameObject *obj);
+	void LostControlPoint(GameObject *obj);
+	void CaptureControlPoint(GameObject *obj);
+	void GrantPointsToTeamMembersInRange(GameObject *obj,float points,bool matchTeam);
+	void UpdateTeamOverride(int teamId);
+	void UpdateTeam(int teamId);
+	void TriggerAssaultLinesUpdate();
+	void UpdateControllerWanderPoints();
+public:
+	char controlPointName[128];
+	int cpGroupId;
+	bool locked;
+	bool captured;
+	bool setupComplete;
+	int controllingTeamId;
+	void ChangeModelAndTeam(GameObject *obj);
+	void UpdateAnimation(GameObject *obj);
+	SList<GameObject> controlPointWanderPoints;
+	JMG_Utility_Control_Point()
+	{
+		setupComplete = false;
+	}
+};
+
+/*!
+* \brief Allows team specific overrides for a control point, script must be on the control point itself
+* \TeamID - Team this effects
+* \ID - ID to send customs to
+* \CaptureCustom - Custom to send when captured by this team
+* \LostCustom - Custom to send when this team loses this CP
+* \PointModelOverride - W3D model to use when this CP is captured by this team (leave it blank if you want to use the default settings)
+* \AnimationOverride - Animation to use when this CP is captured, only used if PointModelOverride is used
+* \AnimationLength - How many frames is the override animation
+* \LockedPointModelOverride - W3D model to use when this CP is captured by this team and its locked (leave it blank if you want to use the default settings)
+* \LockedAnimationOverride - Animation to use when this CP is captured and locked, only used if LockedPointModelOverride is used
+* \LockedAnimationLength - How many frames is the override animation
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Control_Point_Setting_Override : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Needs to be on objects that can affect the control point scripts
+* \TeamID - Team this belongs to
+* \Multiplier - Make this unit weigh more for defnese and capture, 1 is the default
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Control_Point_Team_Member : public ScriptImpClass {
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+public:
+	int teamId;
+	JMG_Utility_Control_Point_Controller::ControlPointTeamData *teamData;
+	bool setupComplete;
+	int multiplier;
+	JMG_Utility_Control_Point_Team_Member()
+	{
+		teamData = NULL;
+		setupComplete = false;
+	}
+};
+
+/*!
+* \brief Turns the control point system into something resembling Mutant Assault in ECW, it uses the groupId on the control points to decide which to enable in disable
+* \ In general capture direction is from 0, to 1, to 2, etc.  GroupId's below 0 are ignored in the system
+* \TeamID - Team that is on the defensive
+* \ID - ID of the object to send customs to, 0 sends to self.
+* \AdvanceCustom - Custom to send if Team manages to grab a group number that is lower than the current, param is the groupId that was gained
+* \PushBackCustom - Custom to send if Team is pushed back, param is the groupId that was lost
+* \ControlAllCustom - Custom to send if Team has all CPs in the positive groupId range, param is the groupId that was gained
+* \LostAllCustom - Custom to send if Team has none of the CPs in the positive groupId range, param is the groupId that was lost
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Control_Point_Assault_Mode : public ScriptImpClass {
+	int id;
+	int advanceCustom;
+	int pushedBackCustom;
+	int controlAllCustom;
+	int lostAllCustom;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+	void Destroyed(GameObject *obj);
+	void SendCustom(GameObject* obj,int custom,int frontLineGroup);
+public:
+	static int teamId;
+	static int frontLineGroup;
+	static int controllerId;
+	static int spawnGroup;
+	static int enemySpawnGroup;
+	void UpdateAssaultLine(GameObject *obj,bool initialSetup);
+};
+
+/*!
+* \brief Updates a wander point's group ID depending on if the attached control point can be spawned at by the specified team
+* \ControlPointID - ID of the control point this wander point is connected to
+* \TeamID - Team that this wander point updates for
+* \SpawnableGroupID - GroupId the wander point should change to if control point is spawnable, -999 doesn't update
+* \UnspawnableGroupId - GroupId the wander point should change to if the team can't spawn at the control point, -999 doesn't update
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Control_Point_Wander_Point : public ScriptImpClass {
+	int spawnableGroupId;
+	int unspawnableGroupId;
+	JMG_Utility_Control_Point *cpScript;
+	Rp2SimplePositionSystem::SimplePositionNode *wanderPoint;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+	Rp2SimplePositionSystem::SimplePositionNode *AddAndReturnWanderpoint(GameObject *obj);
+public:
+	JMG_Utility_Control_Point_Wander_Point()
+	{
+		cpScript = NULL;
+	}
+	int teamId;
+	int controlPointId;
+	void ControlPointChanged();
+	void UpdateWanderpointSettings();
+};
+	
+/*!
+* \brief Allows the player to select their spawn location before entering the map much like Mutant Assault in ECW.
+* \SpawnPreset - Preset the player becomes after spawning
+* \TeamID - Team that the player is on, used for selecting controlled control points
+* \SpawnCustom - custom to trigger spawning, spawn time must be 0
+* \GroupChangeCustom - This custom causes the player to cycle between available control points on the front lines
+* \UngroupedChangeCustom - This custom causes the player to cycle through control points with groups less than 0
+* \SafeTeleportDistance - the maximum range you will be randomly placed into the map if your spawn location is occupied
+* \SpawnTime - Defines how long in seconds the player must be in spawn mode before being able to spawn
+* \MaxWanderRange - Maximum distance in meters the player can move from a spawn point before being pulled back
+* \StringID - String ID that is used for displaying HUD messages, this value gets updated in the strings table
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Control_Point_Select_Spawn_System : public ScriptImpClass {
+	int stringId;
+	int teamId;
+	int controlPointId;
+	int ungroupedControlPointId;
+	int selectedCpId;
+	int groupChangeCustom;
+	int ungroupedChangeCustom;
+	int spawnCustom;
+	float safeTeleportDistance;
+	int lastSpawnGroup;
+	int maxSpawnTime;
+	int spawnTime;
+	float maxWanderRange;
+	float startFadeRange;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	int SelectCpToSpawnFrom(GameObject *obj,int cpId,bool assaultLines);
+	bool MoveToControlledWanderPointForCp(GameObject *obj,int cpId);
+};
+
+/*!
+* \brief Sends a custom on a custom with matching param
+* \Custom - Custom to watch for
+* \Param - Param to watch for
+* \ID - ID to send to, 0 sends to self, -1 sends to sender
+* \SendCustom - custom to send
+* \SendParam - param to send (-1 sends the param that was received)
+* \Delay - delay to add
+* \RandomDelay - Max amount of random delay that can be added to the delay
+* \RandomChance - If non-zero this will be the chance that the custom can send 0.0-1.0, 1 will always send
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_And_Param_Send_Custom : public ScriptImpClass {
+	int recieveMessage;
+	int recieveParam;
+	int id;
+	int custom;
+	int Param;
+	float delay;
+	float randomDelay;
+	float randomChance;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Moves object to nearest pathfind location on create
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Create_Move_To_Nearest_Pathfind : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Scans the map and attaches the specifed script to all objects that have the specified weapon
+* \WeaponName - Name of the weapon to check for
+* \Script - Name of the script to attach
+* \Params - The parameters to use for the script
+* \Delim - The character to use in place of a ',' swapped at script creation
+* \Rate - Rate at which the script scans
+* \PlayerType - Required team to attach to
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Attach_Script_To_Object_With_Weapon : public ScriptImpClass {
+	char weaponName[128];
+	char *params;
+	char script[128];
+	float rate;
+	int playerType;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+};
+
+/*!
+* \brief Basically GTH_Drop_Object_On_Death but attaches a script to the dropped object
+* \Drop_Object - Object to drop
+* \Drop_Height - Height to add to dropped object
+* \Probability - Chance to drop
+* \Script - Name of the script to attach to dropped object
+* \Params - The parameters to use for the script
+* \Delim - The character to use in place of a ',' swapped at script creation
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Drop_Object_On_Death_And_Attach_Script : public ScriptImpClass {
+	void Killed(GameObject *obj,GameObject *killer);
+};
+
+/*!
+* \brief Tweaks M04 so the bubbles work right and infantry carrying the shotgun drop it
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_SinglePlayer_M04_Modifier : public ScriptImpClass {
+	bool setupComplete;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+public: 
+	void Register_Auto_Save_Variables();
+	JMG_SinglePlayer_M04_Modifier()
+	{
+		setupComplete = false;
+	}
+};
+
+/*!
+* \brief Watches for specific custom and sends them to the specified id, after each send starts a timer, if another watched custom is received in this time it adds to a list
+* \ The list is processed one by one until empty, using the delays to delay each custom.
+* \ID - ID to send to, 0 = self (not recommended, will start a loop) -1 is sender, everything else is the id
+* \Custom0-9 - Customs to watch for
+* \Time0-9 - Amount of time after sending each custom in which the next custom must be delayed before sending
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Send_Delayed_Ordered_Customs : public ScriptImpClass {
+	struct TimedOrderedCustom
+	{
+	public:
+		int senderId;
+		int custom;
+		int param;
+		float time;
+		TimedOrderedCustom(int senderid,int custom,int param,float time)
+		{
+			this->senderId = senderId;
+			this->custom = custom;
+			this->param = param;
+			this->time = time;
+		}
+	};
+	SList<TimedOrderedCustom> timedOrderedCustom;
+	int id;
+	int customs[10];
+	float times[10];
+	bool delay;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	void Destroyed(GameObject *obj);
+	void Detach(GameObject *obj);
+public:
+	JMG_Utility_Custom_Send_Delayed_Ordered_Customs()
+	{
+		timedOrderedCustom.Remove_All();
+	}
+};
+
+/*!
+* \brief Sends a custom on a custom if the model matches
+* \Model - Model this object must be for the script to trigger
+* \Custom - Custom to watch for
+* \ID - ID to send to, 0 sends to self, -1 sends to sender
+* \SendCustom - custom to send
+* \Param - param to send (-1 sends the param that was received)
+* \Delay - delay to add
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Send_Custom_If_Model : public ScriptImpClass {
+	int recieveMessage;
+	int id;
+	int custom;
+	int Param;
+	float delay;
+	char model[16];
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Grants a weapon and then destroys self on poke
+* \Weapon - Weapon to grant
+* \Rounds - Rounds in the gun, -1 = infinite
+* \Backpack - Should it fill the backpack
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Poke_Grant_Weapon_Destroy_Self : public ScriptImpClass {
+	void Created(GameObject *obj);
+	void Poked(GameObject *obj, GameObject *poker);
+};
+
+/*!
+* \brief Drops an object on destroyed/killed/Detached (only drops once, whichever comes first)
+* \Weapon - Weapon the character must have to drop the object
+* \DropPreset - Preset that is dropped
+* \Height - Height to add to the drop preset
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Killed_Drop_Object_If_Weapon_Present : public ScriptImpClass
+{
+	bool dropped;
+	void Killed(GameObject *obj,GameObject *killer);
+	void Destroyed(GameObject *obj);
+	void Detach(GameObject *obj);
+public:
+	JMG_Utility_Killed_Drop_Object_If_Weapon_Present()
+	{
+		dropped = false;
+	}
+};
+
+/*!
+* \brief Sends a custom message on poke if the poker has a specified weapon, the message is sent from the poker
+* \Weapon - Weapon the poker must have
+* \ID - ID to send the custom to, 0 sends to self, -1 sends to poker
+* \Custom - Custom message to send
+* \Param - Param to send
+* \Delay - Delay to add before sending custom
+* \RemoveWeapon - Whether to remove the poker's weapon on poke
+* \PlayerType - Required player type
+* \TriggerOnce - Allows the script only to trigger the first time all customs are received
+* \MustBeHeld - Player must be holding the weapon out when poking
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Poke_Send_Custom_If_Has_Weapon : public ScriptImpClass {
+	int id;
+	int playerType;
+	int custom;
+	int param;
+	float delay;
+	int triggerOnce;
+	char weapon[256];
+	int removeWeapon;
+	int mustBeHeld;
+	void Created(GameObject *obj);
+	void Poked(GameObject *obj, GameObject *poker);
+};
+
+/*!
+* \brief Sends a custom message on if a player holds a specified weapon within a range of the attached object
+* \Weapon - Weapon the poker must have
+* \Range - detection range
+* \ID - ID to send the custom to, 0 sends to self, -1 sends to poker
+* \Custom - Custom message to send
+* \Param - Param to send
+* \Delay - Delay to add before sending custom
+* \RemoveWeapon - Whether to remove the poker's weapon on poke
+* \PlayerType - Required player type
+* \TriggerOnce - Allows the script only to trigger the first time all customs are received
+* \MustBeHeld - Player must be holding the weapon out when poking
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Send_Custom_If_Weapon_Held_In_Range : public ScriptImpClass {
+	int id;
+	int playerType;
+	int custom;
+	int param;
+	float delay;
+	int triggerOnce;
+	char weapon[256];
+	int removeWeapon;
+	int mustBeHeld;
+	float range;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+};
+
+/*!
+* \brief Sends any custom message caught back to the sender
+* \Model - Model this object must be for the script to trigger
+* \SendFromSelf - If one the reflection is sent from the object that originally sent, otherwise sent from the reflector
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Refect_Custom_If_Model : public ScriptImpClass {
+	int sendFromSelf;
+	char model[16];
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Sets the attached object's team when a custom is received
+* \Custom - Custom to trigger on
+* \Team - Team to set
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Set_Team : public ScriptImpClass {
+	int custom;
+	int team;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief Creates a specified preset at a random wander point
+* \Custom - Custom to trigger on
+* \Preset - Preset to create
+* \WanderingAIGroupID - Id of the wandering point group to use to place the object
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Create_Object_At_Random_Wander_Point : public ScriptImpClass {
+	int custom;
+	char preset[128];
+	int wanderPointGroup;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	bool Get_A_Defense_Point(Vector3 *position,float *facing);
+};
+
+/*!
+* \brief Teleports the object that enters the zone to a wander point that isn't visible to players
+* \WanderingAIGroupID - Group of points to teleport to
+* \SafeTeleportDistance - How far can infantry be moved if the spot is blocked
+* \ChangeGroupIDCustom - Changes the wander point group id to a new one, uses the parameter on the custom sent in
+* \PlayerType - Playertype the zone triggers for
+* \RetryOnFailure - If this is true a script will be attached that will continue to try to teleport the player until successful (Warning: Turning this on hides error messages)
+* \AiOnly - Only trigger for AI
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Zone_Teleport_To_Non_Visible_Wander_Point : public ScriptImpClass {
+	bool retryOnFailure;
+	int playerType;
+	float safeTeleportDistance;
+	int wanderPointGroup;
+	int changeGroupIDCustom;
+	bool aiOnly;
+	void Created(GameObject *obj);
+	void Entered(GameObject *obj,GameObject *enterer);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	bool Get_A_Defense_Point(Vector3 *position,float *facing);
+	bool Grab_Teleport_Spot(GameObject *enter,int attempts);
+};
+
+/*!
+* \brief Used by JMG_Utility_Zone_Teleport_To_Random_Wander_Point
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Zone_Teleport_To_Non_Visible_Wander_Point_Attach : public ScriptImpClass {
+	float safeTeleportDistance;
+	int wanderPointGroup;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+	bool Get_A_Defense_Point(Vector3 *position,float *facing);
+};
+
+/*!
+* \brief Builds a keypad using a model with bones named Number(0-9), Clear, and Enter, the buttons it creates to attach to the bones are named PRESETNAME_Key_(0-9), PRESETNAME_Key_Enter, or PRESETNAME_Key_Clear
+* \RandomCombinationDigits - How many digits this combination can be
+* \ID - ID to send the messages to
+* \Success_Custom - Message to send when the combination is matched
+* \Partial_Failure_Custom - Sent until max_failures is meet
+* \Failure_Custom - Message to send when max failures is meet, counter for partial fails is reset upon this
+* \Disable_On_Success - Disable the keypad on a valid entry
+* \Disable_On_Failure - If you completely fail should the keypad disable
+* \Starts_Enabled - Whether the pad can be used from the get-go
+* \Enable_Custom - Turn the number pad on/off
+* \Failure_Safty - Allow partial fail customs to send
+* \Max_Failures - As long as this value is less than the current failed attempt count a partial fail message is sent, once it matches a complete fail message is sent
+* \Sound_Name_Base - Sound that should be played when buttons are pressed, a number 0-9 or ENTER or CLEAR is tacked on to the end
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Security_System_Random_NumberPad_Control : public ScriptImpClass {
+	int buttonIds[12];
+	void Created(GameObject *obj);
+	void Destroyed(GameObject *obj);
+public:
+	char combination[25];
+};
+
+/*!
+* \brief Used by to make a param send when customs are sent in in the correct order
+* \ID - ID to send the messages to
+* \Combination - Combination that must be entered (25 char max)
+* \Input_Number_Custom - Number from the keypad
+* \Input_Enter_Custom - Enter key pressed
+* \Input_Clear_Custom - Clear key pressed
+* \Success_Custom - Message to send when the combination is matched
+* \Partial_Failure_Custom - Sent until max_failures is meet
+* \Failure_Custom - Message to send when max failures is meet, counter for partial fails is reset upon this
+* \Disable_On_Success - Disable the keypad on a valid entry
+* \Disable_On_Failure - If you completely fail should the keypad disable
+* \Starts_Enabled - Whether the pad can be used from the get-go
+* \Enable_Custom - Turn the number pad on/off
+* \Failure_Safty - Allow partial fail customs to send
+* \Max_Failures - As long as this value is less than the current failed attempt count a partial fail message is sent, once it matches a complete fail message is sent
+* \Sound_Name_Base - Sound that should be played when buttons are pressed, a number 0-9 or ENTER or CLEAR is tacked on to the end
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Combination_Lock : public ScriptImpClass {
+	char inputCode[128];
+	unsigned int depth;
+	int failCount;
+	bool enabled;
+	int inputCustom;
+	int inputEnter;
+	int inputClear;
+	int enableCustom;
+	char combination[25];
+	int successCustom;
+	int failureSaftey;
+	int maxFailures;
+	int partialFailCustom;
+	int failureCustom;
+	bool disableOnFailure;
+	bool disableOnSuccess;
+	int id;
+	char soundNameBase[128];
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	void Send_Custom(GameObject *obj,int custom,int param);
+	void Enable(bool enableLock);
+	void ClearUserEntry();
+};
+/*!
+* \brief Used for pressing keys on the combination lock, script is attached by the code
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Combination_Lock_Key : public ScriptImpClass {
+	int id;
+	int message;
+	int param;
+	bool useAltAnimation;
+	char animation[32];
+	char animation2[32];
+	char soundName[128];
+	void Created(GameObject *obj);
+	void Poked(GameObject *obj,GameObject *poker);
+};
+
+/*!
+* \brief Takes a string and replaces the delim with the code generated by JMG_Utility_Security_System_Random_NumberPad_Control
+* \StringID - ID of the string to update
+* \Delim - Character to replace in the string with the code
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Sync_String_With_Random_NumberPad_Control : public ScriptImpClass {
+	char delim;
+	int stringId;
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+};
+
+/*!
+* \brief Starts a looping animation on a sub object when a client joins a game 
+* \SubObject - Subobject to play on
+* \Animation - Animation to play
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Created_Animate_SubObject_On_Join : public ScriptImpClass {
+	char animation[32];
+	char subobject[16];
+	bool animating[128];
+	void Created(GameObject *obj);
+	void Timer_Expired(GameObject *obj,int number);
+};
+
+/*!
+* \brief When a specified custom is received it plays an animation, when the animation complete it sends a custom, if applied to a soldier damage animations and other animations are disabled.
+* \ReceivedCustom - Message needed to trigger the script
+* \Animation - Animation to play 
+* \StartFrame - First frame of the animation
+* \EndFrame - Last frame of the animation
+* \ID - Id of the object to send the custom to, 0 sends to itself
+* \Message - Custom to send
+* \Param - parameter to send with the custom
+* \Delay - Time amount to wait before sending the custom
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Play_Animation_Send_Custom_When_Complete : public ScriptImpClass {
+	int receivedCustom;
+	int id;
+	int custom;
+	int Param;
+	float delay;
+	char animation[32];
+	float startFrame;
+	float endFrame;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	void Animation_Complete(GameObject *obj,const char *anim);
+};
+
+/*!
+* \brief Plays a looped animation on the attached infantry, disables all animations
+* \Animation - Animation to play 
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Created_Play_Locked_Infantry_Animation : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Sends a custom to all matching presets on the map on custom
+* \ReceivedCustom - Message needed to trigger the script
+* \Preset - Presets to send to
+* \Message - Custom to send
+* \Param - parameter to send with the custom
+* \Delay - Time amount to wait before sending the custom
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Send_Custom_To_Preset : public ScriptImpClass {
+	int receivedCustom;
+	char preset[128];
+	int custom;
+	int Param;
+	float delay;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+
+/*!
+* \brief Plays a sound from the position of the attached soldier, also animates their face dynamically
+* \Custom - Message needed to trigger the script
+* \StringID - ID of the string in strings.tbl to play, must have the sound attached to it. (Use // at the front of the string to make it not show up in chat).
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Talk : public ScriptImpClass {
+	int custom;
+	int soundId;
+	int stringId;
+	char soundName[128];
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+	void Killed(GameObject *obj,GameObject *killer);
+};
+
+/*!
+* \brief Sends a custom to an object on entry if the preset matches
+* \Preset - Preset required
+* \PlayerType - Player type the zone triggers for
+* \ID - ID to send the custom to, 0 sends to self, -1 sends to enter
+* \Custom - Custom message to send
+* \Param - Param to send
+* \Delay - Delay to add before sending custom
+* \TriggerOnce - Allows the script only to trigger the first time the zone is entered
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Zone_Send_Custom_Enter_Preset : public ScriptImpClass {
+	char preset[128];
+	int playerType;
+	int custom;
+	int param;
+	float delay;
+	int id;
+	bool triggerOnce;
+	void Created(GameObject *obj);
+	void Entered(GameObject *obj,GameObject *enterer);
+};
+
+/*!
+* \brief Controller is required for the global armor system for all objects on the map that have the object script
+* \DefaultMaxArmor - Default max armor when the object spawns into the game 
+* \DefaultArmor - Default armor when the object spawns into the game 
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Armor_Controller : public ScriptImpClass {
+	void Created(GameObject *obj);
+public:
+	static float maxArmor;
+	static float armor;
+};
+
+/*!
+* \brief When a custom is received it will change the armor of all objects on the map that have the object script
+* \Custom - Custom needed to trigger the update
+* \MaxArmor - New max armor when the object spawns into the game, -1 uses the param
+* \Armor - New armor when the object spawns into the game, -1 uses the param
+* \UpdateAllObjects - Whether the script should update objects that are already spawned
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Armor_Custom : public ScriptImpClass {
+	int custom;
+	float maxArmor;
+	float armor;
+	bool updateAllObjects;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief When the object is created it will use the armor specified by the controller
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Armor_Object : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Controller is required for the global health system for all objects on the map that have the object script
+* \DefaultMaxHealth - Default max health when the object spawns into the game 
+* \DefaultHealth - Default health when the object spawns into the game 
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Health_Controller : public ScriptImpClass {
+	void Created(GameObject *obj);
+public:
+	static float maxHealth;
+	static float health;
+};
+
+/*!
+* \brief When a custom is received it will change the health of all objects on the map that have the object script
+* \Custom - Custom needed to trigger the update
+* \MaxHealth - New max health when the object spawns into the game, -1 uses the param
+* \Health - New health when the object spawns into the game, -1 uses the param
+* \UpdateAllObjects - Whether the script should update objects that are already spawned
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Health_Custom : public ScriptImpClass {
+	int custom;
+	float maxHealth;
+	float health;
+	bool updateAllObjects;
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
+};
+
+/*!
+* \brief When the object is created it will use the health specified by the controller
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Global_Health_Object : public ScriptImpClass {
+	void Created(GameObject *obj);
+};
+
+/*!
+* \brief Creates random explosions around the attached object within the specified paramaters
+* \Custom - Custom needed to trigger the update
+* \ExplosionPreset - Explosion(s) to create
+* \Count - How many explosions to make
+* \MaxDistance - Maximum distance from the attached object to create explosons 
+* \KillerID - Who gets the kill, -1 = sender, 0 = attached, everything else is a lookup ID
+* \author jgray
+* \ingroup JmgUtility
+*/
+class JMG_Utility_Custom_Create_Random_Explosions : public ScriptImpClass {
+	int custom;
+	int count;
+	float distance;
+	int killerId;
+	char explosionPreset[256];
+	void Created(GameObject *obj);
+	void Custom(GameObject *obj,int message,int param,GameObject *sender);
 };

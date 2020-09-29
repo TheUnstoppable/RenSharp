@@ -461,7 +461,7 @@ public:
 	virtual void C4_Detonate_Event(C4GameObj *C4) { }
 	virtual void Change_Character_Event(cPlayer *Player,const SoldierGameObjDef *Soldier) { }
 	virtual bool Vehicle_Flip_Event(VehicleGameObj *Vehicle) { return true; }
-	virtual bool Request_Vehicle_Event(VehicleFactoryGameObj *Factory,const VehicleGameObjDef *Vehicle,cPlayer *Player,float Delay) { return true; }
+	virtual bool Request_Vehicle_Event(VehicleFactoryGameObj *Factory,const VehicleGameObjDef *Vehicle,cPlayer *Player,float Delay,SoldierGameObj *Owner) { return true; }
 	virtual void Think() { }
 	
 	virtual void Object_Created_Event(GameObject *obj) { }

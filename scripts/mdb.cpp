@@ -292,7 +292,7 @@ void MDB_Unit_Limit::ReEnable()
 	}
 }
 
-void MDB_Unit_Limit::Destroyed(GameObject *obj)
+void MDB_Unit_Limit::Killed(GameObject *obj,GameObject *killer)
 {
 	ReEnable();
 }

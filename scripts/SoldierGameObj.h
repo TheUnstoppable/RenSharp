@@ -204,6 +204,9 @@ public:
 	bool Get_Use_Stock_Ghost_Behavior(){return useStockGhostBehavior;}
 	void Set_Override_Muzzle_Direction(bool override){OverrideMuzzleDirection = override; Set_Object_Dirty_Bit(BIT_RARE, true);};
 	bool Get_Override_Muzzle_Direction(){return OverrideMuzzleDirection;};
+	void Set_Bot_Tag(const char* tag) { botTag = tag; Set_Object_Dirty_Bit(BIT_RARE, true); }
+	const WideStringClass& Get_Bot_Tag() { return botTag; }
+	bool Is_Bot() { return botTag.Get_Length() > 0; }
 	virtual int Get_Contact_Surface_Type();
 	virtual float		Get_Skeleton_Heigth( void );
 	virtual void 		Set_Skeleton_Height( float height );
@@ -297,6 +300,8 @@ protected:
 	float						lastSkeletonWidth;
 	int							overrideWeaponHoldStyleId;
 	bool						enableHumanAnimOverride;
+	WideStringClass				botTag;
+	int sight_bone;
 	TT_DEPRECATED("Do not use") int						Check(void);
 }; // size: 3404
 

@@ -553,6 +553,15 @@
     <ClCompile Include="DefaultConnectionAcceptanceFilter.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="ms.cpp">
+      <Filter>Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="ms_ai.cpp">
+      <Filter>Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectLibraryManager.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABoxClass.h">
@@ -1624,6 +1633,12 @@
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="DefaultConnectionAcceptanceFilter.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="ms.h">
+      <Filter>Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectLibraryManager.h">
       <Filter>Engine</Filter>
     </ClInclude>
   </ItemGroup>

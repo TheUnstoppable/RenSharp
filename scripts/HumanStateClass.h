@@ -162,6 +162,7 @@ private:
 	void					Update_Recoil(WeaponClass * weapon);
 	void					Begin_Jump( void );
 	void					Complete_Jump( void );
+	void					GetLegAndHoldStyle (int *leg_style,int *hold_style);
 };
 
 

@@ -32,7 +32,15 @@ uint32 SysTimeClass::Get()
       this->Reset();
    }
 
-   return timeGetTime() - this->uTimeInit;
+   unsigned int u = timeGetTime();
+   if (u <= uTimeInit)
+   {
+       return uTimeInitNeg + u;
+   }
+   else
+   {
+       return u - uTimeInit;
+   }
 }
 
 

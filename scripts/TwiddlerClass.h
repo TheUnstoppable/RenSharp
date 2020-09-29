@@ -19,6 +19,7 @@ public:
 	virtual DefinitionClass *Twiddle() const;
 	PersistClass *Create() const;
 	const PersistFactoryClass &Get_Factory() const;
+	const DynamicVectorClass<int>& Get_Definition_List() { return m_DefinitionList; }
 	bool Save(ChunkSaveClass &csave);
 	bool Load(ChunkLoadClass &cload);
 	bool Save_Variables(ChunkSaveClass &csave);

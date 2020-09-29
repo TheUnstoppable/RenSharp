@@ -1334,7 +1334,7 @@ void cGameData::Set_Intermission_Time_Seconds(int time) {
 	IntermissionTime_Seconds = time;
 }
 
-void Set_Emot_Icon(int ID,const char *Model,int Team) {
+void Set_Emote_Icon(int ID,const char *Model,int Team) {
 	WideStringClass Send;
 	Send.Format(L"j\n36\n%d\n%hs\n",ID,Model);
 	for (SLNode<cPlayer> *z = Get_Player_List()->Head();z;z = z->Next()) {

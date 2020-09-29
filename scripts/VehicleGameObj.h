@@ -98,6 +98,7 @@ public:
 	void	Update_Damage_Meshes( void );
 	float	Get_Squish_Velocity( void) { return Get_Definition().SquishVelocity; }
 	void Script_Enable_Transitions( bool enable )	{	TransitionsEnabled = enable; Create_And_Destroy_Transitions(); }
+	bool Get_Transitions_Enabled ( void ) { return TransitionsEnabled; }
 	static void Set_Precision(void);
 	static bool	Toggle_Target_Steering( void );
 	static void	Set_Target_Steering( bool onoff );

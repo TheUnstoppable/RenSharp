@@ -40,10 +40,13 @@ void DAVehicleObserverClass::Init() {
 	Start_Timer(1,0.0f);
 }
 
-void DAVehicleObserverClass::Timer_Expired(GameObject *obj,int Number) {
+void DAVehicleObserverClass::Timer_Expired(GameObject* obj, int Number) {
 	if (!VehicleOwner && Get_Vehicle()->Get_Lock_Owner()) {
 		VehicleOwner = ((SoldierGameObj*)Get_Vehicle()->Get_Lock_Owner())->Get_Player();
-		Team = VehicleOwner->Get_Player_Type();
+		if (VehicleOwner)
+			Team = VehicleOwner->Get_Player_Type();
+		else
+			Team = Get_Object_Type(Get_Vehicle()->Get_Lock_Owner());
 	}
 	if (Team == -2) {
 		Team = Get_Vehicle()->Get_Player_Type();

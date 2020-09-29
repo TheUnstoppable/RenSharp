@@ -226,7 +226,7 @@ DA_API bool Exit_Vehicle(SoldierGameObj *Soldier);
 
 DA_API void Reverse_Damage(GameObject *obj,float Amount);
 
-DA_API void Set_Emot_Icon(int ID,const char *Model,int Team);
+DA_API void Set_Emote_Icon(int ID,const char *Model,int Team);
 class SpawnerClass;
 extern REF_DECL(DynamicVectorClass<SpawnerClass*>,SpawnerList);
 

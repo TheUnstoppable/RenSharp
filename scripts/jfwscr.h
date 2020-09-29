@@ -63,6 +63,11 @@ class JFW_Attach_Script_Custom : public ScriptImpClass
   void Custom(GameObject *obj,int type,int param,GameObject *sender);
 };
 
+class JFW_Attach_Script_Custom_Until_Custom : public ScriptImpClass
+{
+  void Custom(GameObject *obj, int type, int param, GameObject *sender);
+};
+
 class JFW_Remove_All_Scripts_Custom : public ScriptImpClass {
 	void Custom(GameObject *obj,int type,int param,GameObject *sender);
 };

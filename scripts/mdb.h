@@ -74,7 +74,7 @@ class MDB_Unit_Limit : public ScriptImpClass {
 	PurchaseSettingsDefClass::TEAM Team;
 	unsigned int Definitions[4];
 	void Created(GameObject *obj);
-	void Destroyed(GameObject *obj);
+	void Killed(GameObject *obj,GameObject *killer);
 	public: void Register_Auto_Save_Variables();
 	void ReEnable();
 };

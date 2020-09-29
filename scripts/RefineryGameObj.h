@@ -64,6 +64,7 @@ public:
 	bool Get_Allow_Harvester_Spawn() { //DA
 		return AllowHarvesterSpawn;
 	}
+	static float HarvesterDumpRate;
 private:
 	void					Load_Variables (ChunkLoadClass &cload);	
 	HarvesterClass *	Harvester;
@@ -78,6 +79,8 @@ private:
 	AudibleSoundClass * MoneyTrickleSound;
 	bool					AllowHarvesterSpawn;
 	ReferencerClass HarvesterVehicle;
+	float accumulatedDumpCredits;
+	float DumpRate;
 }; // 2232, RH7 2252
 
 

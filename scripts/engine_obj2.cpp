@@ -33,14 +33,14 @@ GameObject *Create_Library_Object(const char *preset)
 AT2(0x006C6420,0x006C5CC0);
 ScriptZoneGameObj *ScriptZoneGameObj::Find_Closest_Zone(Vector3 &Location,ZoneConstants::ZoneType Type)
 {
-	float closest = 999999;
+	float closest = FLT_MAX;
 	ScriptZoneGameObj *closestzone = 0;
 	for (SLNode<ScriptZoneGameObj>* node = GameObjManager::ScriptZoneGameObjList.Head(); node; node = node->Next())
 	{
 		ScriptZoneGameObj *zone = node->Data();
 		if (zone->Get_Definition().Get_Type() == Type)
 		{
-			float distance = Vector3::Distance(zone->Get_Bounding_Box().Center,Location);
+			float distance = Vector3::Distance_Squared(zone->Get_Bounding_Box().Center,Location);
 			if (distance < closest)
 			{
 				closest = distance;

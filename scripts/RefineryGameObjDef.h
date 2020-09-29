@@ -22,6 +22,8 @@ public:
 	~RefineryGameObjDef (void);
 	uint32								Get_Class_ID (void) const;
 	PersistClass *						Create (void) const;
+	float								Get_Funds_Gathered() const { return FundsGathered; }
+	float								Get_Funds_Distributed_Per_Sec() const { return FundsDistributedPerSec; }
 	bool									Save (ChunkSaveClass &csave);
 	bool									Load (ChunkLoadClass &cload);
 	const PersistFactoryClass &	Get_Factory (void) const;

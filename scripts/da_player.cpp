@@ -1263,16 +1263,16 @@ bool DAPlayerManager::Suicide_Event(cPlayer *Player) { //Default suicide event.
 	return false;
 }
 
-bool DAPlayerManager::Vehicle_Entry_Request_Event(VehicleGameObj *Vehicle,cPlayer *Player,int &Seat) {
-	return Player->Get_DA_Player()->Vehicle_Entry_Request(Vehicle,Seat);
+bool DAPlayerManager::Vehicle_Entry_Request_Event(VehicleGameObj* Vehicle, cPlayer* Player, int& Seat) {
+	return Player->Get_DA_Player()->Vehicle_Entry_Request(Vehicle, Seat);
 }
 
-void DAPlayerManager::Vehicle_Enter_Event(VehicleGameObj *Vehicle,cPlayer *Player,int Seat) {
-	Player->Get_DA_Player()->Vehicle_Enter(Vehicle,Seat);
+void DAPlayerManager::Vehicle_Enter_Event(VehicleGameObj* Vehicle, cPlayer* Player, int Seat) {
+	Player->Get_DA_Player()->Vehicle_Enter(Vehicle, Seat);
 }
 
-void DAPlayerManager::Vehicle_Exit_Event(VehicleGameObj *Vehicle,cPlayer *Player,int Seat) {
-	Player->Get_DA_Player()->Vehicle_Exit(Vehicle,Seat);
+void DAPlayerManager::Vehicle_Exit_Event(VehicleGameObj* Vehicle, cPlayer* Player, int Seat) {
+	Player->Get_DA_Player()->Vehicle_Exit(Vehicle, Seat);
 }
 
 bool DAPlayerManager::PowerUp_Grant_Request_Event(cPlayer *Player,const PowerUpGameObjDef *PowerUp,PowerUpGameObj *PowerUpObj) {

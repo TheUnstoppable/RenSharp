@@ -420,6 +420,8 @@ class JFW_Kill_Message_Display : public ScriptImpClass {
 	unsigned int KillerPlayerID;
 	unsigned int KilledID;
 	unsigned int KilledPlayerID;
+	bool KillerIsMSBot;
+	bool KilledIsMSBot;
 	void Created(GameObject *obj);
 	void Custom(GameObject *obj,int type,int param,GameObject *sender);
 public:

@@ -18,6 +18,8 @@ public:
 	ArmedGameObjDef( void );
 	virtual bool								Save( ChunkSaveClass &csave );
 	virtual bool								Load( ChunkLoadClass &cload );
+	int											Get_Weapon_Def_ID() const { return WeaponDefID; }
+	int											Get_Secondary_Weapon_Def_ID() const { return SecondaryWeaponDefID; }
 #ifdef DDBEDIT
 	virtual void                        Dump (FileClass &file);
 #endif
