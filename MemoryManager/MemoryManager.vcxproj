@@ -199,6 +199,9 @@ copy "$(TargetPath)" "%RenServerPath%\$(TargetFileName)"
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuildStep Include="MemoryManager_win32.def">
+
+    </CustomBuildStep>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DList.h" />

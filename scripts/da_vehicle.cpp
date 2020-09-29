@@ -362,7 +362,14 @@ void DAVehicleManager::Kill_Event(DamageableGameObj *Victim,ArmedGameObj *Killer
 					Header = "_BUILDINGKILL";
 				}
 				else {
-					VictimName = a_or_an_Prepend(DATranslationManager::Translate(Victim));
+					if (((VehicleGameObj*)Victim)->Get_Driver() && ((VehicleGameObj*)Victim)->Get_Driver()->Get_Bot_Tag()) {
+						VictimName = StringClass(((VehicleGameObj*)Victim)->Get_Driver()->Get_Bot_Tag().Peek_Buffer());
+						VictimName += "'s ";
+						VictimName += DATranslationManager::Translate(Victim);
+					}
+					else {
+						VictimName = a_or_an_Prepend(DATranslationManager::Translate(Victim));
+					}
 					Header = "_BOTKILL";
 				}
 				if (!Killer) { //No killer
@@ -380,7 +387,12 @@ void DAVehicleManager::Kill_Event(DamageableGameObj *Victim,ArmedGameObj *Killer
 							}
 						}
 						else { //Killed by bot
-							Message.Format("%d %s destroyed %s (%s VS. %s)",Killer->Get_Player_Type(),A_Or_An_Prepend(DATranslationManager::Translate(Killer)),VictimName,DATranslationManager::Translate_Soldier(Killer),DATranslationManager::Translate(Victim));
+							if (Killer->As_SoldierGameObj()->Get_Bot_Tag()) {
+								Message.Format("%d %ls destroyed %s (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), VictimName, DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate(Victim));
+							}
+							else {
+								Message.Format("%d %s destroyed %s (%s VS. %s)", Killer->Get_Player_Type(), A_Or_An_Prepend(DATranslationManager::Translate(Killer)), VictimName, DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate(Victim));
+							}
 						}
 					}
 					else if (Killer->As_VehicleGameObj()) { //Killed by vehicle. Could be defense or AI vehicle.
@@ -395,7 +407,12 @@ void DAVehicleManager::Kill_Event(DamageableGameObj *Victim,ArmedGameObj *Killer
 							Message.Format("%d %s destroyed %s (%s VS. %s)",Killer->Get_Player_Type(),A_Or_An_Prepend(DATranslationManager::Translate_With_Team_Name(Killer)),VictimName,DATranslationManager::Translate(Killer),DATranslationManager::Translate(Victim));
 						}
 						else {
-							Message.Format("%d %s destroyed %s (%s VS. %s)",Killer->Get_Player_Type(),A_Or_An_Prepend(DATranslationManager::Translate(Killer)),VictimName,DATranslationManager::Translate(Killer),DATranslationManager::Translate(Victim));
+							if (((VehicleGameObj*)Killer)->Get_Driver() && ((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag()) {
+								Message.Format("%d %ls destroyed %s (%s VS. %s)", Killer->Get_Player_Type(), ((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag(), VictimName, DATranslationManager::Translate(Killer), DATranslationManager::Translate(Victim));
+							}
+							else {
+								Message.Format("%d %s destroyed %s (%s VS. %s)", Killer->Get_Player_Type(), A_Or_An_Prepend(DATranslationManager::Translate(Killer)), VictimName, DATranslationManager::Translate(Killer), DATranslationManager::Translate(Victim));
+							}
 						}
 					}
 				}
@@ -458,14 +475,19 @@ void DAVehicleManager::Kill_Event(DamageableGameObj *Victim,ArmedGameObj *Killer
 					}
 				}
 				else { //Killed by bot
-					Message.Format("%d %s destroyed %s (%s VS. %s)",Killer->Get_Player_Type(),A_Or_An_Prepend(DATranslationManager::Translate(Killer)),VictimName,DATranslationManager::Translate_Soldier(Killer),DATranslationManager::Translate(Victim));
+					if (Killer->As_SoldierGameObj()->Get_Bot_Tag()) {
+						Message.Format("%d %ls destroyed %s (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), VictimName, DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate(Victim));
+					}
+					else {
+						Message.Format("%d %s destroyed %s (%s VS. %s)", Killer->Get_Player_Type(), A_Or_An_Prepend(DATranslationManager::Translate(Killer)), VictimName, DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate(Victim));
+					}
 				}
 			}
 			else if (Killer->As_VehicleGameObj()) { //Killed by vehicle. Could be defense or AI vehicle.
 				if (Victim == Killer) {
 					if (!Owner) {
 						VictimName[0] = (char)toupper(VictimName[0]);
-						DA::Color_Message(COLORWHITE,"2 %s destroyed itself.",VictimName);
+						DA::Color_Message(COLORWHITE,"%s destroyed itself.",VictimName);
 					}
 					else {
 						Message.Format("%d %s destroyed itself.",Owner->Get_Player_Type(),VictimName);
@@ -478,7 +500,12 @@ void DAVehicleManager::Kill_Event(DamageableGameObj *Victim,ArmedGameObj *Killer
 					Message.Format("%d %s destroyed %s (%s VS. %s)",Killer->Get_Player_Type(),A_Or_An_Prepend(DATranslationManager::Translate_With_Team_Name(Killer)),VictimName,DATranslationManager::Translate(Killer),DATranslationManager::Translate(Victim));
 				}
 				else {
-					Message.Format("%d %s destroyed %s (%s VS. %s)",Killer->Get_Player_Type(),A_Or_An_Prepend(DATranslationManager::Translate(Killer)),VictimName,DATranslationManager::Translate(Killer),DATranslationManager::Translate(Victim));
+					if (((VehicleGameObj*)Killer)->Get_Driver() && ((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag()) {
+						Message.Format("%d %ls destroyed %s (%s VS. %s)", Killer->Get_Player_Type(), ((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag(), VictimName, DATranslationManager::Translate(Killer), DATranslationManager::Translate(Victim));
+					}
+					else {
+						Message.Format("%d %s destroyed %s (%s VS. %s)", Killer->Get_Player_Type(), A_Or_An_Prepend(DATranslationManager::Translate(Killer)), VictimName, DATranslationManager::Translate(Killer), DATranslationManager::Translate(Victim));
+					}
 				}
 			}
 			DALogManager::Write_Log("_VEHKILL","%s",Message);
@@ -556,7 +583,15 @@ class DAVehicleChatCommandClass: public DAChatCommandClass { //This will get ove
 		if (VF && VF->Is_Busy() && VF->Get_Generating_Vehicle_ID()) {
 			StringClass Name;
 			if (VF->Get_Purchaser()) {
-				Name = VF->Get_Purchaser()->Get_Player()->Get_Name();
+				if (VF->Get_Purchaser()->Get_Player()) {
+					Name = VF->Get_Purchaser()->Get_Player()->Get_Name();
+				}
+				else if(Name = VF->Get_Purchaser()->Get_Bot_Tag()) {
+					Name = VF->Get_Purchaser()->Get_Bot_Tag();
+				}
+				else {
+					Name = A_Or_An_Prepend(DATranslationManager::Translate(VF->Get_Purchaser()));
+				}
 				Name += " - ";
 			}
 			else {

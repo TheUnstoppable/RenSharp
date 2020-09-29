@@ -7689,12 +7689,13 @@ class MS_AI_Player_Controller_Spawned_Object : public ScriptImpClass
 				if (Kill_Messages_Disabled())
 					return;
 
-				int killStringID = Get_Object_Type(obj) == Get_Object_Type(killer) ? Get_String_ID_By_Desc("IDS_MP_TREASON_PHRASE") : Get_String_ID_By_Desc("IDS_MP_DEFAULT_KILL_PHRASE");
+				//Kill messages are handled by DA.
+				/*int killStringID = Get_Object_Type(obj) == Get_Object_Type(killer) ? Get_String_ID_By_Desc("IDS_MP_TREASON_PHRASE") : Get_String_ID_By_Desc("IDS_MP_DEFAULT_KILL_PHRASE");
 
 				Vector3 rgb = Get_Color_For_Team(Get_Object_Type(killer));
 				StringClass msg;
 				msg.Format("%s %s %s", Get_Player_Name(killer), Get_Translated_String(killStringID), botName.Peek_Buffer());
-				Send_Message((int)(rgb.X * 255), (int)(rgb.Y * 255), (int)(rgb.Z * 255), msg.Peek_Buffer());
+				Send_Message((int)(rgb.X * 255), (int)(rgb.Y * 255), (int)(rgb.Z * 255), msg.Peek_Buffer());*/
 			}
 		}
 	}
