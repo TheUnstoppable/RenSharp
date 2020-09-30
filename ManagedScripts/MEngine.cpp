@@ -48,6 +48,8 @@ RENEGADE_FUNCTION
 void Internal_Create_Animation_Name(StringClass& target, const char* animation, const char* model)
 AT2(0x006DB000, 0x006DA8A0);
 
+REF_DEF2(float, TimeScale, 0x00811E60, 0x00811038);
+
 ::cTeam* Internal_Find_Team_Wrapper(int team)
 {
 	return Internal_Find_Team(team);
@@ -15565,6 +15567,21 @@ static ::cPlayer* NickSavePlayer = nullptr;
 	void Engine::Exe::set(int value)
 	{
 		::Exe = value;
+	}
+
+	float Engine::TimeScale::get()
+	{
+		return ::TimeScale;
+	}
+
+	void Engine::TimeScale::set(float value)
+	{
+		if (::Set_Time_Scale == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		::Set_Time_Scale(value);
 	}
 
 	array<String^>^ Engine::SurfaceTypeStrings::get()

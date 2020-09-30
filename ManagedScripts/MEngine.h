@@ -505,7 +505,6 @@ namespace RenSharp
 			static int StopSoundPlayer(IScriptableGameObj^ player, int sound_id, bool destroy_sound);
 			static int StopSoundTeam(int sound_id, bool destroy_sound, int team);
 			static int SetSubobjectAnimation(IScriptableGameObj^ obj, String^ animation, bool looping, String^ subobject, float startFrame, float endFrame, bool blended);
-			static void SetTimeScale(float scale);
 			static int SetSubobjectAnimationPlayer(IScriptableGameObj^ player, IScriptableGameObj^ obj, String^ animation, bool looping, String^ subobject, float startFrame, float endFrame, bool blended);
 			static int WriteFileAsync(String^ _FileName, String^ _Text);
 			static IUnmanagedContainer<IDynamicVectorClass<int>^> ^GetEnlistedPurchaseItems(int team);
@@ -2137,6 +2136,12 @@ namespace RenSharp
 			{
 				int get();
 				void set(int value);
+			}
+
+			static property float TimeScale
+			{
+				float get();
+				void set(float value);
 			}
 
 			// w3d.h
