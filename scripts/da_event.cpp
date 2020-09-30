@@ -160,7 +160,7 @@ void DAEventManager::Think() {
 			Timers.Delete(i);
 			i--;
 		}
-		else if (GetTickCount()-Timers[i]->StartTime >= Timers[i]->Duration) {
+		else if ((GetTickCount()-Timers[i]->StartTime)*TimeScale >= Timers[i]->Duration) {
 			Timers[i]->Base->Timer_Expired(Timers[i]->Number,Timers[i]->Data);
 			if (Timers[i]->Repeat) {
 				Timers[i]->StartTime = GetTickCount();

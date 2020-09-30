@@ -194,7 +194,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 			}
 			else { //Killed by bot
 				if (Type == DADamageType::HEADSHOT || Type == DADamageType::NECKSHOT) {
-					if (Killer->As_SoldierGameObj()->Get_Bot_Tag()) {//Smart bot kill
+					if (wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) {//Smart bot kill
 						Message.Format("%d %ls killed %ls HEADSHOT! (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), Get_Wide_Player_Name(Victim), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 					}
 					else {
@@ -202,7 +202,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 					}
 				}
 				else if (Type == DADamageType::SQUISH) {
-					if (Killer->As_SoldierGameObj()->Get_Bot_Tag()) {//Smart bot kill
+					if (wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) {//Smart bot kill
 						Message.Format("%d %ls killed %ls SQUISH! (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), Get_Wide_Player_Name(Victim), DATranslationManager::Translate(GetExplosionObj()), DATranslationManager::Translate_Soldier(Victim));
 					}
 					else {
@@ -210,7 +210,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 					}
 				}
 				else if (Type == DADamageType::EXPLOSION) {
-					if (Killer->As_SoldierGameObj()->Get_Bot_Tag()) {//Smart bot kill
+					if (wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) {//Smart bot kill
 						Message.Format("%d %ls killed %ls (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), Get_Wide_Player_Name(Victim), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 					}
 					else {
@@ -218,7 +218,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 					}
 				}
 				else {
-					if (Killer->As_SoldierGameObj()->Get_Bot_Tag()) {//Smart bot kill
+					if (wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) {//Smart bot kill
 						Message.Format("%d %ls killed %ls (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), Get_Wide_Player_Name(Victim), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 					}
 					else {
@@ -235,7 +235,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 			else if (((VehicleGameObj*)Killer)->Is_Turret()) {
 				KillerTranslation = A_Or_An_Prepend(DATranslationManager::Translate_With_Team_Name(Killer));
 			}
-			else if (((VehicleGameObj*)Killer)->Get_Driver() && ((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag()) {
+			else if (((VehicleGameObj*)Killer)->Get_Driver() && wcslen(((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag())) {
 				KillerTranslation = ((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag();
 			}
 			else {
@@ -265,7 +265,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 			if (((SoldierGameObj*)Killer)->Get_Player()) { //Killed by player
 				if (Type == DADamageType::SQUISH) {
 					((SoldierGameObj*)Killer)->Get_Player()->Squishes++;
-					if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+					if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 						Message.Format("%d %ls killed %ls SQUISH! (%s VS. %s)", Killer->Get_Player_Type(), Get_Wide_Player_Name(Killer), Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 					}
 					else {
@@ -273,7 +273,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 					}
 				}
 				else if (Type == DADamageType::HEADSHOT || Type == DADamageType::NECKSHOT) {
-					if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+					if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 						Message.Format("%d %ls killed %ls HEADSHOT! (%s VS. %s)", Killer->Get_Player_Type(), Get_Wide_Player_Name(Killer), Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 					}
 					else {
@@ -281,7 +281,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 					}
 				}
 				else if (Type == DADamageType::EXPLOSION) {
-					if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+					if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 						Message.Format("%d %ls killed %ls (%s VS. %s)", Killer->Get_Player_Type(), Get_Wide_Player_Name(Killer), Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate_Soldier(GetExplosionObj()), DATranslationManager::Translate_Soldier(Victim));
 					}
 					else {
@@ -289,7 +289,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 					}
 				}
 				else {
-					if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+					if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 						Message.Format("%d %ls killed %ls (%s VS. %s)", Killer->Get_Player_Type(), Get_Wide_Player_Name(Killer), Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 					}
 					else {
@@ -298,7 +298,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 				}
 			}
 			else if (Victim == Killer) { //Suicide
-				if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+				if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 					Message.Format("%d %ls killed itself (%s)", Killer->Get_Player_Type(), Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate_Soldier(Victim));
 				}
 				else {
@@ -307,8 +307,8 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 			}
 			else { //Killed by bot
 				if (Type == DADamageType::HEADSHOT || Type == DADamageType::NECKSHOT) {
-					if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
-						if (Killer->As_SoldierGameObj() && Killer->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+					if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
+						if (Killer->As_SoldierGameObj() && wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 							Message.Format("%d %ls killed %ls HEADSHOT! (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 						}
 						else {
@@ -316,7 +316,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 						}
 					}
 					else {
-						if (Killer->As_SoldierGameObj() && Killer->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+						if (Killer->As_SoldierGameObj() && wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 							Message.Format("%d %ls killed %s HEADSHOT! (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), A_Or_An_Prepend(DATranslationManager::Translate(Victim)), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 						}
 						else {
@@ -325,8 +325,8 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 					}
 				}
 				else if (Type == DADamageType::EXPLOSION) {
-					if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
-						if (Killer->As_SoldierGameObj() && Killer->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+					if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
+						if (Killer->As_SoldierGameObj() && wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 							Message.Format("%d %ls killed %ls (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate(GetExplosionObj()), DATranslationManager::Translate_Soldier(Victim));
 						}
 						else {
@@ -334,7 +334,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 						}
 					}
 					else {
-						if (Killer->As_SoldierGameObj() && Killer->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+						if (Killer->As_SoldierGameObj() && wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 							Message.Format("%d %ls killed %s (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), A_Or_An_Prepend(DATranslationManager::Translate(Victim)), DATranslationManager::Translate(GetExplosionObj()), DATranslationManager::Translate_Soldier(Victim));
 						}
 						else {
@@ -343,8 +343,8 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 					}
 				}
 				else {
-					if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
-						if (Killer->As_SoldierGameObj() && Killer->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+					if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
+						if (Killer->As_SoldierGameObj() && wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 							Message.Format("%d %ls killed %ls (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 						}
 						else {
@@ -352,7 +352,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 						}
 					}
 					else {
-						if (Killer->As_SoldierGameObj() && Killer->As_SoldierGameObj()->Get_Bot_Tag()) { // Smart bot kill
+						if (Killer->As_SoldierGameObj() && wcslen(Killer->As_SoldierGameObj()->Get_Bot_Tag())) { // Smart bot kill
 							Message.Format("%d %ls killed %s (%s VS. %s)", Killer->Get_Player_Type(), Killer->As_SoldierGameObj()->Get_Bot_Tag(), A_Or_An_Prepend(DATranslationManager::Translate(Victim)), DATranslationManager::Translate_Soldier(Killer), DATranslationManager::Translate_Soldier(Victim));
 						}
 						else {
@@ -370,7 +370,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 			else if (((VehicleGameObj*)Killer)->Is_Turret()) {
 				KillerTranslation = A_Or_An_Prepend(DATranslationManager::Translate_With_Team_Name(Killer));
 			}
-			else if (((VehicleGameObj*)Killer)->Get_Driver() && ((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag()) {
+			else if (((VehicleGameObj*)Killer)->Get_Driver() && wcslen(((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag())) {
 				KillerTranslation = ((VehicleGameObj*)Killer)->Get_Driver()->Get_Bot_Tag();
 			}
 			else {
@@ -378,7 +378,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 			}
 
 			if (Type == DADamageType::SQUISH) {
-				if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { //Smart bot kill
+				if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { //Smart bot kill
 					Message.Format("%d %s killed %ls SQUISH! (%s VS. %s)", Killer->Get_Player_Type(), KillerTranslation, Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate(Killer), DATranslationManager::Translate_Soldier(Victim));
 				}
 				else {
@@ -386,7 +386,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 				}
 			}
 			else if (Type == DADamageType::HEADSHOT || Type == DADamageType::NECKSHOT) {
-				if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { //Smart bot kill
+				if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { //Smart bot kill
 					Message.Format("%d %s killed %ls HEADSHOT! (%s VS. %s)", Killer->Get_Player_Type(), KillerTranslation, Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate(Killer), DATranslationManager::Translate_Soldier(Victim));
 				}
 				else {
@@ -394,7 +394,7 @@ void DASoldierManager::Kill_Event(DamageableGameObj* Victim, ArmedGameObj* Kille
 				}
 			}
 			else {
-				if (Victim->As_SoldierGameObj() && Victim->As_SoldierGameObj()->Get_Bot_Tag()) { //Smart bot kill
+				if (Victim->As_SoldierGameObj() && wcslen(Victim->As_SoldierGameObj()->Get_Bot_Tag())) { //Smart bot kill
 					Message.Format("%d %s killed %ls (%s VS. %s)", Killer->Get_Player_Type(), KillerTranslation, Victim->As_SoldierGameObj()->Get_Bot_Tag(), DATranslationManager::Translate(Killer), DATranslationManager::Translate_Soldier(Victim));
 				}
 				else {

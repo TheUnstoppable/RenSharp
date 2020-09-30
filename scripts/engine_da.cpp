@@ -94,6 +94,7 @@ AT2(0,0x006A5270);
 REF_DEF2(bool,CombatManager::FriendlyFirePermitted,0,0x008550E4);
 REF_DEF2(bool,CombatManager::BeaconPlacementEndsGame,0,0x008550E5);
 REF_DEF2(bool,BuildingGameObj::CanRepairBuildings,0,0x00810474);
+REF_DEF2(float, TimeScale, 0x00811E60, 0x00811038);
 
 RENEGADE_FUNCTION
 bool cGameData::Set_Max_Players(int)

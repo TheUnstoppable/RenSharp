@@ -229,5 +229,6 @@ DA_API void Reverse_Damage(GameObject *obj,float Amount);
 DA_API void Set_Emote_Icon(int ID,const char *Model,int Team);
 class SpawnerClass;
 extern REF_DECL(DynamicVectorClass<SpawnerClass*>,SpawnerList);
+extern REF_DECL(float, TimeScale);
 
 #endif
