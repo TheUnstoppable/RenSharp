@@ -4865,32 +4865,143 @@ namespace RenSharp
 
 	int Engine::StopSoundPlayer(IScriptableGameObj^ player, int sound_id, bool destroy_sound)
 	{
-		return 0;
+		if(::Stop_Sound_Player == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (player == nullptr || player->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("player");
+		}
+
+		return ::Stop_Sound_Player(reinterpret_cast<::GameObject*>(player->ScriptableGameObjPointer.ToPointer()), sound_id, destroy_sound);
 	}
 
 	int Engine::StopSoundTeam(int sound_id, bool destroy_sound, int team)
 	{
-		return 0;
+		if (::Stop_Sound_Team == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		return ::Stop_Sound_Team(sound_id, destroy_sound, team);
 	}
 
 	int Engine::SetSubobjectAnimation(IScriptableGameObj^ obj, String^ animation, bool looping, String^ subobject, float startFrame, float endFrame, bool blended)
 	{
-		return 0;
-	}
+		if (::Set_Subobject_Animation == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
 
-	void Engine::SetTimeScale(float scale)
-	{
-		throw gcnew System::NotImplementedException();
+		if (obj == nullptr || obj->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("obj");
+		}
+
+		int result = 0;
+		IntPtr animationHandle = Marshal::StringToHGlobalAnsi(animation);
+		try
+		{
+			IntPtr subobjectHandle = Marshal::StringToHGlobalAnsi(subobject);
+			try
+			{
+				result = ::Set_Subobject_Animation(reinterpret_cast<::GameObject*>(obj->ScriptableGameObjPointer.ToPointer()),
+					reinterpret_cast<char*>(animationHandle.ToPointer()),
+					looping,
+					reinterpret_cast<char*>(subobjectHandle.ToPointer()),
+					startFrame,
+					endFrame,
+					blended);
+			}
+			finally
+			{
+				Marshal::FreeHGlobal(subobjectHandle);
+			}
+		}
+		finally
+		{
+			Marshal::FreeHGlobal(animationHandle);
+		}
+
+		return result;
 	}
 
 	int Engine::SetSubobjectAnimationPlayer(IScriptableGameObj^ player, IScriptableGameObj^ obj, String^ animation, bool looping, String^ subobject, float startFrame, float endFrame, bool blended)
 	{
-		return 0;
+		if (::Set_Subobject_Animation_Player == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		if (obj == nullptr || obj->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("obj");
+		}
+
+		if (player == nullptr || player->ScriptableGameObjPointer.ToPointer() == nullptr)
+		{
+			throw gcnew ArgumentNullException("player");
+		}
+
+		int result = 0;
+		IntPtr animationHandle = Marshal::StringToHGlobalAnsi(animation);
+		try
+		{
+			IntPtr subobjectHandle = Marshal::StringToHGlobalAnsi(subobject);
+			try
+			{
+				result = ::Set_Subobject_Animation_Player(reinterpret_cast<::GameObject*>(player->ScriptableGameObjPointer.ToPointer()),
+					reinterpret_cast<::GameObject*>(obj->ScriptableGameObjPointer.ToPointer()),
+					reinterpret_cast<char*>(animationHandle.ToPointer()),
+					looping,
+					reinterpret_cast<char*>(subobjectHandle.ToPointer()),
+					startFrame,
+					endFrame,
+					blended);
+			}
+			finally
+			{
+				Marshal::FreeHGlobal(subobjectHandle);
+			}
+		}
+		finally
+		{
+			Marshal::FreeHGlobal(animationHandle);
+		}
+
+		return result;
 	}
 
 	int Engine::WriteFileAsync(String^ _FileName, String^ _Text)
 	{
-		return 0;
+		if (::Write_File_Async == nullptr)
+		{
+			throw gcnew NotSupportedException("Pointer to function is null.");
+		}
+
+		int result = 0;
+		IntPtr filenameHandle = Marshal::StringToHGlobalAnsi(_FileName);
+		try
+		{
+			IntPtr textHandle = Marshal::StringToHGlobalAnsi(_Text);
+			try
+			{
+				result = ::Write_File_Async(reinterpret_cast<char*>(filenameHandle.ToPointer()),
+					reinterpret_cast<char*>(textHandle.ToPointer()));
+			}
+			finally
+			{
+				Marshal::FreeHGlobal(textHandle);
+			}
+		}
+		finally
+		{
+			Marshal::FreeHGlobal(filenameHandle);
+		}
+
+		return result;
 	}
 
 	IUnmanagedContainer<IDynamicVectorClass<int>^>^ Engine::GetEnlistedPurchaseItems(int team)
